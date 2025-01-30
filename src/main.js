@@ -20,6 +20,9 @@ class TankGame {
       this.gameOver = false;
       this.currentSkin = 1;
       this.turretRotation = 0;
+      this.lastTime = performance.now();
+      this.speed = 500; // Pixel pro Sekunde
+      this.gameWon = false;
 
       // Images (placeholder, you'll need to replace with actual image loading)
       this.playerImage = new Image();
@@ -36,6 +39,17 @@ class TankGame {
 
       this.gameOverImage = new Image();
       this.gameOverImage.src = "Gameover.jpg";
+
+      this.winImage = new Image();
+      this.winImage.src = "win.jpg";
+
+      // Bewegungsstatus für mehrere Tasten
+      this.keys = {
+          w: false,
+          s: false,
+          a: false,
+          d: false
+      };
 
       this.init();
   }
@@ -75,32 +89,23 @@ class TankGame {
 
   setupEventListeners() {
       window.addEventListener('keydown', (e) => this.handleKeyPress(e));
+      window.addEventListener('keyup', (e) => {
+          if (e.key in this.keys) {
+              this.keys[e.key] = false;
+          }
+      });
       window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
       window.addEventListener('mousedown', (e) => this.handleMouseClick(e));
   }
 
   handleKeyPress(e) {
-      if (this.gameOver && e.key === 'Enter') {
+      if ((this.gameOver || this.gameWon) && e.key === 'Enter') {
           this.restart();
           return;
       }
-
-      const speed = 5;
-      switch(e.key) {
-          case 'w': 
-              this.playerX += Math.cos(this.playerRotation) * speed;
-              this.playerY += Math.sin(this.playerRotation) * speed;
-              break;
-          case 's': 
-              this.playerX -= Math.cos(this.playerRotation) * speed;
-              this.playerY -= Math.sin(this.playerRotation) * speed;
-              break;
-          case 'a':
-              this.playerRotation -= 0.1;
-              break;
-          case 'd':
-              this.playerRotation += 0.1;
-              break;
+      
+      if (e.key in this.keys) {
+          this.keys[e.key] = true;
       }
   }
 
@@ -249,8 +254,29 @@ class TankGame {
       this.ctx.font = '20px Arial';
       this.ctx.fillText(`Level: ${this.level}`, 10, 30);
       this.ctx.fillText(`Points: ${this.points}`, 10, 60);
-      this.ctx.fillText(`Health: ${this.health}`, 10, 90);
-      this.ctx.fillText(`Coins: ${this.currency}`, 10, 120);
+      this.ctx.fillText(`Coins: ${this.currency}`, 10, 90);
+
+      // Health Bar in der rechten oberen Ecke
+      const healthBarWidth = 200;
+      const healthBarHeight = 20;
+      const healthBarX = this.canvas.width - healthBarWidth - 20;
+      const healthBarY = 20;
+
+      // Äußerer Rahmen
+      this.ctx.strokeStyle = 'white';
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+
+      // Health-Füllstand
+      const currentHealthWidth = (this.health / 100) * healthBarWidth;
+      this.ctx.fillStyle = `rgb(${255 - (this.health * 2.55)}, ${this.health * 2.55}, 0)`;
+      this.ctx.fillRect(healthBarX, healthBarY, currentHealthWidth, healthBarHeight);
+
+      // Health Text
+      this.ctx.fillStyle = 'white';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(`${this.health}%`, healthBarX + healthBarWidth/2, healthBarY + 15);
+      this.ctx.textAlign = 'left';
 
       if (this.gameOver) {
           this.ctx.drawImage(
@@ -261,26 +287,50 @@ class TankGame {
               this.canvas.height
           );
       }
+
+      if (this.gameWon) {
+          this.ctx.drawImage(
+              this.winImage,
+              0,
+              0,
+              this.canvas.width,
+              this.canvas.height
+          );
+          
+          this.ctx.fillStyle = 'white';
+          this.ctx.font = '48px Arial';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText(
+              `Congratulations! You scored ${this.points} points!`,
+              this.canvas.width/2,
+              this.canvas.height - 100
+          );
+      }
   }
 
   gameLoop() {
       if (!this.gameOver) {
+          this.updatePlayerMovement();
           this.updateBullets();
           this.updateEnemies();
           this.checkCollisions();
           this.render();
 
           if (this.enemies.length === 0) {
-              this.level++;
-              this.spawnEnemies();
+              if (this.level % 5 === 0) {
+                  this.gameWon = true;
+              } else {
+                  this.level++;
+                  this.spawnEnemies();
+              }
           }
-
-          requestAnimationFrame(() => this.gameLoop());
       }
+      
+      this.render();
+      requestAnimationFrame(() => this.gameLoop());
   }
 
   restart() {
-      // Reset all game state variables
       this.playerX = this.canvas.width / 2;
       this.playerY = this.canvas.height / 2;
       this.playerRotation = 0;
@@ -291,10 +341,40 @@ class TankGame {
       this.enemies = [];
       this.bullets = [];
       this.gameOver = false;
+      this.gameWon = false;
       
-      // Restart game loop
       this.spawnEnemies();
       this.gameLoop();
+  }
+
+  // Neue Methode für Bewegungsupdate
+  updatePlayerMovement() {
+      const currentTime = performance.now();
+      const deltaTime = (currentTime - this.lastTime) / 1000;
+      this.lastTime = currentTime;
+      
+      let newX = this.playerX;
+      let newY = this.playerY;
+      
+      if (this.keys.w) {
+          newX += Math.cos(this.playerRotation) * this.speed * deltaTime;
+          newY += Math.sin(this.playerRotation) * this.speed * deltaTime;
+      }
+      if (this.keys.s) {
+          newX -= Math.cos(this.playerRotation) * this.speed * deltaTime;
+          newY -= Math.sin(this.playerRotation) * this.speed * deltaTime;
+      }
+      if (this.keys.a) {
+          this.playerRotation -= 3 * deltaTime;
+      }
+      if (this.keys.d) {
+          this.playerRotation += 3 * deltaTime;
+      }
+
+      // Bildschirmgrenzen prüfen
+      const padding = 40; // Abstand zum Rand
+      this.playerX = Math.max(padding, Math.min(this.canvas.width - padding, newX));
+      this.playerY = Math.max(padding, Math.min(this.canvas.height - padding, newY));
   }
 }
 

@@ -136,6 +136,9 @@ class TankGame {
       this.joystick.currentX = this.joystick.x;
       this.joystick.currentY = this.joystick.y;
 
+      // Joystick Sichtbarkeits-Status
+      this.showJoystick = true;  // Standard: Joystick ist sichtbar
+
       this.init();
   }
 
@@ -297,6 +300,9 @@ class TankGame {
 
       // Touch/Mouse Events für Joystick
       const handleStart = (e) => {
+          // Prüfe ob Joystick aktiviert ist
+          if (!this.showJoystick) return;
+          
           const pos = this.getInputPosition(e);
           const dist = Math.sqrt(
               Math.pow(pos.x - this.joystick.x, 2) + 
@@ -309,6 +315,9 @@ class TankGame {
       };
 
       const handleMove = (e) => {
+          // Prüfe ob Joystick aktiviert ist
+          if (!this.showJoystick) return;
+          
           if (this.joystick.isPressed) {
               const pos = this.getInputPosition(e);
               const dx = pos.x - this.joystick.x;
@@ -330,7 +339,7 @@ class TankGame {
               
               if (Math.abs(joyDx) > 10 || Math.abs(joyDy) > 10) {
                   this.playerRotation = Math.atan2(joyDy, joyDx);
-                  this.keys.w = true;  // Vorwärtsbewegung wenn Joystick nicht zentriert
+                  this.keys.w = true;
               } else {
                   this.keys.w = false;
               }
@@ -338,6 +347,9 @@ class TankGame {
       };
 
       const handleEnd = () => {
+          // Prüfe ob Joystick aktiviert ist
+          if (!this.showJoystick) return;
+          
           this.joystick.isPressed = false;
           this.joystick.currentX = this.joystick.x;
           this.joystick.currentY = this.joystick.y;
@@ -353,6 +365,24 @@ class TankGame {
       this.canvas.addEventListener('touchstart', handleStart);
       this.canvas.addEventListener('touchmove', handleMove);
       window.addEventListener('touchend', handleEnd);
+
+      // Füge Click-Handler für Joystick-Button hinzu
+      this.canvas.addEventListener('click', (e) => {
+          if (this.isMenuOpen && this.joystickButton) {
+              const rect = this.canvas.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
+              
+              if (
+                  mouseX >= this.joystickButton.x &&
+                  mouseX <= this.joystickButton.x + this.joystickButton.width &&
+                  mouseY >= this.joystickButton.y &&
+                  mouseY <= this.joystickButton.y + this.joystickButton.height
+              ) {
+                  this.toggleJoystick();
+              }
+          }
+      });
   }
 
   handleKeyPress(e) {
@@ -759,11 +789,38 @@ class TankGame {
               height: knobSize
           };
 
+          // Joystick Toggle Button
+          const buttonWidth = 150;
+          const buttonHeight = 40;
+          const buttonX = this.canvas.width/2 - buttonWidth/2;
+          const buttonY = menuY + 440;  // Position unter den Slidern
+
+          // Button Hintergrund
+          this.ctx.fillStyle = '#555';
+          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+          // Button Text
+          this.ctx.fillStyle = 'white';
+          this.ctx.font = '16px "Black Ops One"';
+          this.ctx.fillText(
+              this.showJoystick ? 'Joystick: ON' : 'Joystick: OFF',
+              this.canvas.width/2,
+              buttonY + 25
+          );
+
+          // Speichere Button-Position für Click-Detection
+          this.joystickButton = {
+              x: buttonX,
+              y: buttonY,
+              width: buttonWidth,
+              height: buttonHeight
+          };
+
           this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
       }
 
-      // Zeichne Joystick
-      if (!this.gameOver && !this.gameWon && !this.isMenuOpen) {
+      // Zeichne Joystick nur wenn er aktiviert ist
+      if (!this.gameOver && !this.gameWon && !this.isMenuOpen && this.showJoystick) {
           // Äußerer Kreis (Base)
           this.ctx.beginPath();
           this.ctx.arc(this.joystick.x, this.joystick.y, this.joystick.baseRadius, 0, Math.PI * 2);
@@ -906,6 +963,19 @@ class TankGame {
       }
       
       return { x, y };
+  }
+
+  // Neue Methode zum Umschalten des Joysticks
+  toggleJoystick() {
+      this.showJoystick = !this.showJoystick;
+      
+      // Wenn Joystick ausgeschaltet wird, setze Bewegung zurück
+      if (!this.showJoystick) {
+          this.joystick.isPressed = false;
+          this.joystick.currentX = this.joystick.x;
+          this.joystick.currentY = this.joystick.y;
+          this.keys.w = false;
+      }
   }
 }
 

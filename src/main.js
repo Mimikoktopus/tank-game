@@ -430,13 +430,26 @@ class TankGame {
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
       
+      // Prüfe Klick auf Menü-Button
       if (
           mouseX >= this.menuButton.x &&
           mouseX <= this.menuButton.x + this.menuButton.width &&
           mouseY >= this.menuButton.y &&
           mouseY <= this.menuButton.y + this.menuButton.height
       ) {
-          return; // Wenn auf den Menü-Button geklickt wurde, keinen Schuss abfeuern
+          return;
+      }
+      
+      // Prüfe Klick im Joystick-Bereich
+      if (this.showJoystick) {
+          const distToJoystick = Math.sqrt(
+              Math.pow(mouseX - this.joystick.x, 2) + 
+              Math.pow(mouseY - this.joystick.y, 2)
+          );
+          
+          if (distToJoystick <= this.joystick.baseRadius) {
+              return; // Wenn im Joystick-Bereich geklickt wurde, nicht schießen
+          }
       }
       
       // Ansonsten normal weitermachen mit dem Schuss

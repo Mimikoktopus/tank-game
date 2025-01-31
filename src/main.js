@@ -271,14 +271,26 @@ class TankGame {
 
   updateEnemies() {
       this.enemies.forEach(enemy => {
-          const angle = Math.atan2(
-              this.playerY - enemy.y, 
-              this.playerX - enemy.x
+          // Berechne die Distanz zum Spieler
+          const distanceToPlayer = Math.sqrt(
+              Math.pow(this.playerX - enemy.x, 2) + 
+              Math.pow(this.playerY - enemy.y, 2)
           );
-          // Speichere die Rotation im Enemy-Objekt
-          enemy.rotation = angle;
-          enemy.x += Math.cos(angle) * 2.5;
-          enemy.y += Math.sin(angle) * 2.5;
+          
+          // Nur rotieren und bewegen wenn der Gegner nicht zu nah ist
+          if (distanceToPlayer > 20) {  // Von 35 auf 20 reduziert, damit sie näher kommen
+              const angle = Math.atan2(
+                  this.playerY - enemy.y, 
+                  this.playerX - enemy.x
+              );
+              enemy.rotation = angle;
+              enemy.x += Math.cos(angle) * 2.5;
+              enemy.y += Math.sin(angle) * 2.5;
+          }
+          // Wenn kein rotation Wert existiert, setze einen
+          if (enemy.rotation === undefined) {
+              enemy.rotation = 0;
+          }
       });
   }
 
@@ -321,21 +333,24 @@ class TankGame {
           this.spawnEnemies();
       }
 
-      // Player-Enemy collision
-      this.enemies.forEach(enemy => {
+      // Player-Enemy collision mit größerer Hitbox
+      for (let enemy of this.enemies) {
           const distance = Math.sqrt(
               Math.pow(this.playerX - enemy.x, 2) + 
               Math.pow(this.playerY - enemy.y, 2)
           );
-          if (distance < 30) {  // Collision distance
-              // Reduziere den Schaden von 0.3 auf 0.15 pro Frame
-              this.health -= 0.15;
+          
+          if (distance < 45) {  // Von 30 auf 45 erhöht für größere Hitbox
+              this.health -= 0.5;
+              this.sounds.damage.play();
               
               if (this.health <= 0) {
+                  this.health = 0;
                   this.gameOver = true;
+                  this.sounds.gameOver.play();
               }
           }
-      });
+      }
   }
 
   render() {
@@ -374,7 +389,7 @@ class TankGame {
       this.enemies.forEach(enemy => {
           this.ctx.save();
           this.ctx.translate(enemy.x, enemy.y);
-          this.ctx.rotate(enemy.rotation); // Nutze die gespeicherte Rotation
+          this.ctx.rotate(enemy.rotation);
           this.ctx.drawImage(
               this.enemyImage,
               -this.enemyImage.width/2,

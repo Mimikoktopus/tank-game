@@ -45,6 +45,19 @@ class TankGame {
       this.winImage = new Image();
       this.winImage.src = "Bilder/Hintergrund/win.jpg";
 
+      // Füge Menü-Button Bild hinzu
+      this.menuButtonImage = new Image();
+      this.menuButtonImage.src = 'Bilder/Sonstige/MenuButton.png';  // Du musst dieses Bild noch erstellen/hinzufügen
+      
+      // Menü-Button Position und Größe
+      this.menuButton = {
+          x: 20,
+          y: 20,
+          width: 40,
+          height: 40,
+          isHovered: false
+      };
+
       // Bewegungsstatus für mehrere Tasten
       this.keys = {
           w: false,
@@ -128,6 +141,35 @@ class TankGame {
       });
       window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
       window.addEventListener('mousedown', (e) => this.handleMouseClick(e));
+      
+      // Füge Mouse-Events für den Menü-Button hinzu
+      this.canvas.addEventListener('mousemove', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          this.menuButton.isHovered = (
+              mouseX >= this.menuButton.x &&
+              mouseX <= this.menuButton.x + this.menuButton.width &&
+              mouseY >= this.menuButton.y &&
+              mouseY <= this.menuButton.y + this.menuButton.height
+          );
+      });
+
+      this.canvas.addEventListener('click', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          if (
+              mouseX >= this.menuButton.x &&
+              mouseX <= this.menuButton.x + this.menuButton.width &&
+              mouseY >= this.menuButton.y &&
+              mouseY <= this.menuButton.y + this.menuButton.height
+          ) {
+              this.toggleMenu();
+          }
+      });
   }
 
   handleKeyPress(e) {
@@ -343,6 +385,20 @@ class TankGame {
               this.canvas.height - 100
           );
       }
+
+      // Zeichne den Menü-Button
+      this.ctx.save();
+      if (this.menuButton.isHovered) {
+          this.ctx.globalAlpha = 0.8;
+      }
+      this.ctx.drawImage(
+          this.menuButtonImage,
+          this.menuButton.x,
+          this.menuButton.y,
+          this.menuButton.width,
+          this.menuButton.height
+      );
+      this.ctx.restore();
   }
 
   gameLoop() {
@@ -413,6 +469,12 @@ class TankGame {
       const padding = 40; // Abstand zum Rand
       this.playerX = Math.max(padding, Math.min(this.canvas.width - padding, newX));
       this.playerY = Math.max(padding, Math.min(this.canvas.height - padding, newY));
+  }
+
+  toggleMenu() {
+      // Hier kannst du die Menü-Logik implementieren
+      console.log('Menu clicked!');
+      // Zum Beispiel: Spiel pausieren, Optionen anzeigen, etc.
   }
 }
 

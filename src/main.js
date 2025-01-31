@@ -196,6 +196,9 @@ class TankGame {
   }
 
   fireBullet(e) {
+      // Keine Schüsse wenn das Spiel vorbei ist
+      if (this.gameOver || this.gameWon) return;
+      
       const bulletSpeed = 10;
       const angle = Math.atan2(
           e.clientY - this.playerY, 

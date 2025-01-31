@@ -68,32 +68,32 @@ class TankGame {
           d: false
       };
 
-      // Füge Musik-Lautstärke hinzu (0.0 bis 1.0)
-      this.musicVolume = 0.5;  // Start bei 50%
+      // Füge Musik-Lautstärke hinzu
+      this.musicVolume = 0.5;  // Musik-Lautstärke
+      this.soundVolume = 0.5;  // Sound-Effekt-Lautstärke
       
       // Sound setup mit initialer Lautstärke
       this.sounds = {
           shoot: new Howl({
               src: ['Sounds/Schuss.mp3'],
-              volume: 0.5
+              volume: this.soundVolume
           }),
           explosion: new Howl({
               src: ['Sounds/TodG.mp3'],
-              volume: 0.3
+              volume: this.soundVolume
           }),
           damage: new Howl({
               src: ['sounds/damage.mp3'],
-              volume: 0.7
+              volume: this.soundVolume
           }),
           levelUp: new Howl({
               src: ['Sounds/WonS.mp3'],
-              volume: 0.8
+              volume: this.soundVolume
           }),
           gameOver: new Howl({
               src: ['Sounds/TodS.mp3'],
-              volume: 1.0
+              volume: this.soundVolume
           }),
-          // Neue Hintergrundmusik
           backgroundMusic: new Howl({
               src: ['Sounds/Music.mp3'],
               volume: this.musicVolume,
@@ -116,6 +116,10 @@ class TankGame {
 
       // Slider-Status für Drag-Funktionalität
       this.isDraggingSlider = false;
+
+      // Slider-Status für beide Regler
+      this.isDraggingMusicSlider = false;
+      this.isDraggingSoundSlider = false;
 
       this.init();
   }
@@ -230,33 +234,50 @@ class TankGame {
 
       // Slider Event Listeners
       this.canvas.addEventListener('mousedown', (e) => {
-          if (this.isMenuOpen && this.volumeSlider) {
+          if (this.isMenuOpen) {
               const rect = this.canvas.getBoundingClientRect();
               const mouseX = e.clientX - rect.left;
               const mouseY = e.clientY - rect.top;
               
-              if (
-                  mouseX >= this.volumeSlider.x &&
-                  mouseX <= this.volumeSlider.x + this.volumeSlider.width &&
-                  mouseY >= this.volumeSlider.y &&
-                  mouseY <= this.volumeSlider.y + this.volumeSlider.height
+              // Prüfe Musik-Slider
+              if (this.musicSlider && 
+                  mouseX >= this.musicSlider.x &&
+                  mouseX <= this.musicSlider.x + this.musicSlider.width &&
+                  mouseY >= this.musicSlider.y &&
+                  mouseY <= this.musicSlider.y + this.musicSlider.height
               ) {
-                  this.isDraggingSlider = true;
+                  this.isDraggingMusicSlider = true;
                   this.updateMusicVolume(mouseX);
+              }
+              
+              // Prüfe Sound-Slider
+              if (this.soundSlider && 
+                  mouseX >= this.soundSlider.x &&
+                  mouseX <= this.soundSlider.x + this.soundSlider.width &&
+                  mouseY >= this.soundSlider.y &&
+                  mouseY <= this.soundSlider.y + this.soundSlider.height
+              ) {
+                  this.isDraggingSoundSlider = true;
+                  this.updateSoundVolume(mouseX);
               }
           }
       });
 
       this.canvas.addEventListener('mousemove', (e) => {
-          if (this.isDraggingSlider) {
-              const rect = this.canvas.getBoundingClientRect();
-              const mouseX = e.clientX - rect.left;
+          const rect = this.canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          
+          if (this.isDraggingMusicSlider) {
               this.updateMusicVolume(mouseX);
+          }
+          if (this.isDraggingSoundSlider) {
+              this.updateSoundVolume(mouseX);
           }
       });
 
       window.addEventListener('mouseup', () => {
-          this.isDraggingSlider = false;
+          this.isDraggingMusicSlider = false;
+          this.isDraggingSoundSlider = false;
       });
   }
 
@@ -590,47 +611,56 @@ class TankGame {
           this.ctx.fillText(`Points: ${this.points}`, this.canvas.width/2, menuY + 200);
           this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);
 
-          // Slider statt Button
+          // Musik-Slider
           const sliderWidth = 200;
           const sliderHeight = 4;
+          const musicSliderY = menuY + 300;
+          const soundSliderY = menuY + 370;  // 70 Pixel tiefer
           const sliderX = this.canvas.width/2 - sliderWidth/2;
-          const sliderY = menuY + 300;
           
-          // Slider Hintergrund
-          this.ctx.fillStyle = '#555';
-          this.ctx.fillRect(sliderX, sliderY, sliderWidth, sliderHeight);
-          
-          // Slider Fortschritt
-          this.ctx.fillStyle = '#fff';
-          this.ctx.fillRect(sliderX, sliderY, sliderWidth * this.musicVolume, sliderHeight);
-          
-          // Slider Knopf
-          const knobSize = 15;
-          const knobX = sliderX + (sliderWidth * this.musicVolume) - (knobSize/2);
-          const knobY = sliderY + (sliderHeight/2) - (knobSize/2);
-          
-          this.ctx.beginPath();
-          this.ctx.arc(knobX + knobSize/2, sliderY + sliderHeight/2, knobSize/2, 0, Math.PI * 2);
-          this.ctx.fillStyle = '#fff';
-          this.ctx.fill();
-          
-          // Lautstärke Text
-          this.ctx.fillStyle = 'white';
-          this.ctx.font = '16px "Black Ops One"';
-          this.ctx.textAlign = 'center';
-          this.ctx.fillText(
-              'Music Volume',
-              this.canvas.width/2,
-              sliderY - 10
-          );
+          // Funktion zum Zeichnen eines Sliders
+          const drawSlider = (y, value, label) => {
+              // Slider Hintergrund
+              this.ctx.fillStyle = '#555';
+              this.ctx.fillRect(sliderX, y, sliderWidth, sliderHeight);
+              
+              // Slider Fortschritt
+              this.ctx.fillStyle = '#fff';
+              this.ctx.fillRect(sliderX, y, sliderWidth * value, sliderHeight);
+              
+              // Slider Knopf
+              const knobSize = 15;
+              const knobX = sliderX + (sliderWidth * value) - (knobSize/2);
+              
+              this.ctx.beginPath();
+              this.ctx.arc(knobX + knobSize/2, y + sliderHeight/2, knobSize/2, 0, Math.PI * 2);
+              this.ctx.fillStyle = '#fff';
+              this.ctx.fill();
+              
+              // Label
+              this.ctx.fillStyle = 'white';
+              this.ctx.font = '16px "Black Ops One"';
+              this.ctx.textAlign = 'center';
+              this.ctx.fillText(label, this.canvas.width/2, y - 10);
+          };
 
-          // Speichere Slider-Position für Click-Detection
-          this.volumeSlider = {
+          // Zeichne beide Slider
+          drawSlider(musicSliderY, this.musicVolume, 'Music Volume');
+          drawSlider(soundSliderY, this.soundVolume, 'Sound Effects Volume');
+
+          // Speichere Slider-Positionen für Click-Detection
+          const knobSize = 15;
+          this.musicSlider = {
               x: sliderX,
-              y: sliderY - knobSize/2,  // Erweitere Klickbereich
+              y: musicSliderY - knobSize/2,
               width: sliderWidth,
-              height: knobSize,
-              knobSize: knobSize
+              height: knobSize
+          };
+          this.soundSlider = {
+              x: sliderX,
+              y: soundSliderY - knobSize/2,
+              width: sliderWidth,
+              height: knobSize
           };
 
           this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
@@ -724,12 +754,23 @@ class TankGame {
   }
 
   updateMusicVolume(mouseX) {
-      // Berechne neue Lautstärke basierend auf Mausposition
-      let volume = (mouseX - this.volumeSlider.x) / this.volumeSlider.width;
-      volume = Math.max(0, Math.min(1, volume));  // Beschränke auf 0-1
-      
+      let volume = (mouseX - this.musicSlider.x) / this.musicSlider.width;
+      volume = Math.max(0, Math.min(1, volume));
       this.musicVolume = volume;
       this.sounds.backgroundMusic.volume(volume);
+  }
+
+  updateSoundVolume(mouseX) {
+      let volume = (mouseX - this.soundSlider.x) / this.soundSlider.width;
+      volume = Math.max(0, Math.min(1, volume));
+      this.soundVolume = volume;
+      
+      // Aktualisiere die Lautstärke aller Sound-Effekte
+      Object.keys(this.sounds).forEach(key => {
+          if (key !== 'backgroundMusic') {
+              this.sounds[key].volume(volume);
+          }
+      });
   }
 }
 

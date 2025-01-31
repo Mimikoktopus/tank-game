@@ -87,7 +87,7 @@ class TankGame {
               volume: 0.8
           }),
           gameOver: new Howl({
-              src: ['sounds/gameover.mp3'],
+              src: ['sounds/TodS.mp3'],
               volume: 1.0
           })
       };

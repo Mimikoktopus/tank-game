@@ -26,6 +26,7 @@ class TankGame {
       this.lastTime = performance.now();
       this.speed = 500; // Pixel pro Sekunde
       this.gameWon = false;
+      this.maxWavesPerLevel = 5;  // Basis-Anzahl der Wellen pro Level
 
       // Images (placeholder, you'll need to replace with actual image loading)
       this.playerImage = new Image();
@@ -184,7 +185,17 @@ class TankGame {
   }
 
   handleKeyPress(e) {
-      if ((this.gameOver || this.gameWon) && e.key === 'Enter') {
+      if (this.gameWon && e.key === 'Enter') {
+          this.gameWon = false;
+          this.gameLevel++;  // Erhöhe das Level
+          this.level = 1;    // Setze Wave zurück auf 1
+          this.levelEnemies = 1;  // Starte wieder mit einem Gegner
+          this.health = 100;  // Volle Gesundheit für das neue Level
+          this.spawnEnemies();
+          return;
+      }
+      
+      if (this.gameOver && e.key === 'Enter') {
           this.restart();
           return;
       }
@@ -276,20 +287,19 @@ class TankGame {
 
       // Prüfe, ob Level abgeschlossen ist
       if (this.enemies.length === 0) {
-          // Prüfe zuerst, ob Wave 5 geschafft wurde
-          if (this.level >= 5) {
-              this.gameLevel++;  // Erhöhe das Level
-              this.level = 1;    // Setze Wave zurück auf 1
-              this.levelEnemies = 1;  // Starte wieder mit einem Gegner
-              this.health = 100;  // Volle Gesundheit für das neue Level
-              this.spawnEnemies();
+          // Berechne die maximale Wellenzahl für das aktuelle Level
+          const currentMaxWaves = this.maxWavesPerLevel * this.gameLevel;
+          
+          // Prüfe, ob die letzte Welle des Levels erreicht wurde
+          if (this.level >= currentMaxWaves) {
+              this.gameWon = true;  // Aktiviere den Siegesbildschirm
+              this.sounds.levelUp.play();
               return;
           }
           
           this.level++;
           this.sounds.levelUp.play();
-          // Pro Wave nur 1 Gegner mehr
-          this.levelEnemies = this.level;
+          this.levelEnemies = Math.ceil(this.level / 2);  // Erhöhe die Gegneranzahl alle 2 Wellen
           this.spawnEnemies();
       }
 
@@ -363,7 +373,7 @@ class TankGame {
       this.ctx.fillStyle = 'white';
       this.ctx.font = '20px Arial';
       this.ctx.fillText(`Level: ${this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 30);
-      this.ctx.fillText(`Wave: ${this.level}/5`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 60);
+      this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 60);
       this.ctx.fillText(`Points: ${this.points}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 90);
       this.ctx.fillText(`Coins: ${this.currency}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 120);
       this.ctx.fillText(`Health: ${Math.round(this.health)}`, 10, this.canvas.height - 20);  // Nur bei der Anzeige runden
@@ -459,7 +469,7 @@ class TankGame {
           this.ctx.font = '20px Arial';
           this.ctx.fillText('Drücke ESC zum Schließen', this.canvas.width/2, menuY + 100);
           this.ctx.fillText(`Level: ${this.gameLevel}`, this.canvas.width/2, menuY + 150);
-          this.ctx.fillText(`Wave: ${this.level}/5`, this.canvas.width/2, menuY + 175);
+          this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.canvas.width/2, menuY + 175);
           this.ctx.fillText(`Punkte: ${this.points}`, this.canvas.width/2, menuY + 200);
           this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);  // Auch im Menü runden
       }
@@ -482,7 +492,6 @@ class TankGame {
       this.playerX = this.canvas.width / 2;
       this.playerY = this.canvas.height / 2;
       this.playerRotation = 0;
-      this.gameLevel = 1;  // Level zurücksetzen
       this.level = 1;      // Wave zurücksetzen
       this.levelEnemies = 1;  // Stelle sicher, dass wir mit einem Gegner starten
       this.points = 0;

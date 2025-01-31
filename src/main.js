@@ -76,7 +76,7 @@ class TankGame {
           }),
           explosion: new Howl({
               src: ['Sounds/TodG.mp3'],
-              volume: 0.6
+              volume: 0.3
           }),
           damage: new Howl({
               src: ['sounds/damage.mp3'],
@@ -89,6 +89,13 @@ class TankGame {
           gameOver: new Howl({
               src: ['Sounds/TodS.mp3'],
               volume: 1.0
+          }),
+          // Neue Hintergrundmusik
+          backgroundMusic: new Howl({
+              src: ['Sounds/Music.mp3'],  // Stelle sicher, dass diese Datei existiert
+              volume: 0.3,  // Leiser als die Effekte
+              loop: true,   // Musik wird endlos wiederholt
+              autoplay: false  // Wir starten die Musik manuell
           })
       };
 
@@ -107,6 +114,10 @@ class TankGame {
   init() {
       this.spawnEnemies();
       this.setupEventListeners();
+      
+      // Starte die Hintergrundmusik
+      this.sounds.backgroundMusic.play();
+      
       this.gameLoop();
   }
 
@@ -193,10 +204,10 @@ class TankGame {
   handleKeyPress(e) {
       if (this.gameWon && e.key === 'Enter') {
           this.gameWon = false;
-          this.gameLevel++;  // Erhöhe das Level
-          this.level = 1;    // Setze Wave zurück auf 1
-          this.levelEnemies = 1;  // Starte wieder mit einem Gegner
-          this.health = 100;  // Volle Gesundheit für das neue Level
+          this.gameLevel++;
+          this.level = 1;
+          this.levelEnemies = 1;
+          this.health = 100;
           this.spawnEnemies();
           return;
       }
@@ -330,6 +341,7 @@ class TankGame {
                   this.health = 0;
                   this.gameOver = true;
                   this.sounds.gameOver.play();
+                  this.sounds.backgroundMusic.stop();  // Stoppe Musik bei Game Over
               }
           }
       }
@@ -340,15 +352,17 @@ class TankGame {
           const currentMaxWaves = this.maxWavesPerLevel * this.gameLevel;
           
           // Prüfe, ob die letzte Welle des Levels erreicht wurde
-          if (this.level >= currentMaxWaves) {
+          if (this.level >= currentMaxWaves && !this.gameWon) {  // Prüfe ob noch nicht gewonnen
               this.gameWon = true;
-              this.sounds.levelUp.play();  // Level-Up Sound nur beim Level-Abschluss
+              this.sounds.levelUp.play();  // Level-Up Sound wird nur einmal gespielt
               return;
           }
           
-          this.level++;  // Keine Sound-Wiedergabe mehr bei Wave-Abschluss
-          this.levelEnemies = Math.ceil(this.level / 2);
-          this.spawnEnemies();
+          if (!this.gameWon) {  // Nur neue Gegner spawnen wenn nicht gewonnen
+              this.level++;
+              this.levelEnemies = Math.ceil(this.level / 2);
+              this.spawnEnemies();
+          }
       }
   }
 
@@ -536,8 +550,8 @@ class TankGame {
       this.playerX = this.canvas.width / 2;
       this.playerY = this.canvas.height / 2;
       this.playerRotation = 0;
-      this.level = 1;      // Wave zurücksetzen
-      this.levelEnemies = 1;  // Stelle sicher, dass wir mit einem Gegner starten
+      this.level = 1;
+      this.levelEnemies = 1;
       this.points = 0;
       this.health = 100;
       this.currency = 0;
@@ -547,6 +561,9 @@ class TankGame {
       this.gameWon = false;
       
       this.spawnEnemies();
+      if (!this.sounds.backgroundMusic.playing()) {
+          this.sounds.backgroundMusic.play();
+      }
   }
 
   // Neue Methode für Bewegungsupdate
@@ -583,11 +600,13 @@ class TankGame {
       this.isMenuOpen = !this.isMenuOpen;
       
       if (this.isMenuOpen) {
-          // Spiel pausieren
+          // Spiel und Musik pausieren
           this.gamePaused = true;
+          this.sounds.backgroundMusic.pause();
       } else {
-          // Spiel fortsetzen
+          // Spiel und Musik fortsetzen
           this.gamePaused = false;
+          this.sounds.backgroundMusic.play();
       }
   }
 }

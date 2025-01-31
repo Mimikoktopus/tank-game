@@ -83,11 +83,11 @@ class TankGame {
               volume: 0.7
           }),
           levelUp: new Howl({
-              src: ['sounds/levelup.mp3'],
+              src: ['Sounds/WonS.mp3'],
               volume: 0.8
           }),
           gameOver: new Howl({
-              src: ['sounds/TodS.mp3'],
+              src: ['Sounds/TodS.mp3'],
               volume: 1.0
           })
       };
@@ -304,7 +304,7 @@ class TankGame {
                   Math.pow(bullet.x - enemy.x, 2) + 
                   Math.pow(bullet.y - enemy.y, 2)
               );
-              if (distance < 30) {  // Collision distance
+              if (distance < 30) {
                   this.bullets.splice(i, 1);
                   this.enemies.splice(j, 1);
                   this.points++;
@@ -313,24 +313,6 @@ class TankGame {
                   break;
               }
           }
-      }
-
-      // Prüfe, ob Level abgeschlossen ist
-      if (this.enemies.length === 0) {
-          // Berechne die maximale Wellenzahl für das aktuelle Level
-          const currentMaxWaves = this.maxWavesPerLevel * this.gameLevel;
-          
-          // Prüfe, ob die letzte Welle des Levels erreicht wurde
-          if (this.level >= currentMaxWaves) {
-              this.gameWon = true;  // Aktiviere den Siegesbildschirm
-              this.sounds.levelUp.play();
-              return;
-          }
-          
-          this.level++;
-          this.sounds.levelUp.play();
-          this.levelEnemies = Math.ceil(this.level / 2);  // Erhöhe die Gegneranzahl alle 2 Wellen
-          this.spawnEnemies();
       }
 
       // Player-Enemy collision mit größerer Hitbox
@@ -350,6 +332,23 @@ class TankGame {
                   this.sounds.gameOver.play();
               }
           }
+      }
+
+      // Prüfe, ob Level abgeschlossen ist
+      if (this.enemies.length === 0) {
+          // Berechne die maximale Wellenzahl für das aktuelle Level
+          const currentMaxWaves = this.maxWavesPerLevel * this.gameLevel;
+          
+          // Prüfe, ob die letzte Welle des Levels erreicht wurde
+          if (this.level >= currentMaxWaves) {
+              this.gameWon = true;
+              this.sounds.levelUp.play();  // Level-Up Sound nur beim Level-Abschluss
+              return;
+          }
+          
+          this.level++;  // Keine Sound-Wiedergabe mehr bei Wave-Abschluss
+          this.levelEnemies = Math.ceil(this.level / 2);
+          this.spawnEnemies();
       }
   }
 

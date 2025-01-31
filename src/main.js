@@ -121,12 +121,12 @@ class TankGame {
       this.isDraggingMusicSlider = false;
       this.isDraggingSoundSlider = false;
 
-      // Joystick Konfiguration mit größeren Dimensionen
+      // Joystick Konfiguration
       this.joystick = {
-          x: 100,  // Position links unten
+          x: 100,
           y: this.canvas.height - 100,
-          baseRadius: 70,  // Von 50 auf 70 erhöht - äußerer Kreis
-          stickRadius: 30,  // Von 20 auf 30 erhöht - innerer Stick
+          baseRadius: 70,
+          stickRadius: 30,
           currentX: 0,
           currentY: 0,
           isPressed: false
@@ -136,8 +136,8 @@ class TankGame {
       this.joystick.currentX = this.joystick.x;
       this.joystick.currentY = this.joystick.y;
 
-      // Joystick Sichtbarkeits-Status
-      this.showJoystick = true;  // Standard: Joystick ist sichtbar
+      // Joystick Sichtbarkeits-Status - standardmäßig ausgeschaltet
+      this.showJoystick = false;  // Von true auf false geändert
 
       this.init();
   }
@@ -710,14 +710,14 @@ class TankGame {
               this.canvas.height
           );
 
-          // Game Over Continue Button - Position noch weiter nach unten verschoben
+          // Game Over Continue Button - noch tiefer gesetzt
           const buttonWidth = 200;
           const buttonHeight = 50;
           const buttonX = this.canvas.width/2 - buttonWidth/2;
-          const buttonY = this.canvas.height - 70;  // Von -100 auf -70 geändert
+          const buttonY = this.canvas.height - 40;  // Von -70 auf -40 geändert
 
-          // Button Hintergrund
-          this.ctx.fillStyle = '#555';
+          // Button Hintergrund - jetzt in Rot
+          this.ctx.fillStyle = '#ff0000';  // Rot statt #555
           this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
 
           // Button Text
@@ -759,14 +759,14 @@ class TankGame {
               this.canvas.height - 160
           );
 
-          // Next Level Button
+          // Next Level Button - gleiche Farbe wie Play Again
           const buttonWidth = 200;
           const buttonHeight = 50;
           const buttonX = this.canvas.width/2 - buttonWidth/2;
           const buttonY = this.canvas.height - 100;
 
-          // Button Hintergrund
-          this.ctx.fillStyle = '#555';
+          // Button Hintergrund - jetzt in Rot
+          this.ctx.fillStyle = '#ff0000';  // Rot statt #555
           this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
 
           // Button Text

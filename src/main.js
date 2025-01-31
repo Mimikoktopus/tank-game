@@ -321,6 +321,21 @@ class TankGame {
   }
 
   handleMouseClick(e) {
+      // Prüfe zuerst, ob auf den Menü-Button geklickt wurde
+      const rect = this.canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      if (
+          mouseX >= this.menuButton.x &&
+          mouseX <= this.menuButton.x + this.menuButton.width &&
+          mouseY >= this.menuButton.y &&
+          mouseY <= this.menuButton.y + this.menuButton.height
+      ) {
+          return; // Wenn auf den Menü-Button geklickt wurde, keinen Schuss abfeuern
+      }
+      
+      // Ansonsten normal weitermachen mit dem Schuss
       this.fireBullet(e);
   }
 

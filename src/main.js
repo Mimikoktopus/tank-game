@@ -95,6 +95,12 @@ class TankGame {
       // Füge Menü-Status hinzu
       this.isMenuOpen = false;
 
+      // Lade die Schriftart
+      const link = document.createElement('link');
+      link.href = 'https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap';
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+
       this.init();
   }
 
@@ -391,12 +397,12 @@ class TankGame {
 
       // Draw UI
       this.ctx.fillStyle = 'white';
-      this.ctx.font = '20px Arial';
+      this.ctx.font = '16px "Black Ops One"';
       this.ctx.fillText(`Level: ${this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 30);
       this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 60);
       this.ctx.fillText(`Points: ${this.points}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 90);
       this.ctx.fillText(`Coins: ${this.currency}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 120);
-      this.ctx.fillText(`Health: ${Math.round(this.health)}`, 10, this.canvas.height - 20);  // Nur bei der Anzeige runden
+      this.ctx.fillText(`Health: ${Math.round(this.health)}`, 10, this.canvas.height - 20);
 
       // Health Bar in der rechten oberen Ecke
       const healthBarWidth = 200;
@@ -414,9 +420,10 @@ class TankGame {
       this.ctx.fillStyle = `rgb(${255 - (this.health * 2.55)}, ${this.health * 2.55}, 0)`;
       this.ctx.fillRect(healthBarX, healthBarY, currentHealthWidth, healthBarHeight);
 
-      // Health Text
-      this.ctx.fillStyle = 'white';
+      // Health Bar Text
+      this.ctx.font = '12px "Black Ops One"';
       this.ctx.textAlign = 'center';
+      this.ctx.fillStyle = 'white';
       this.ctx.fillText(`${Math.round(this.health)}%`, healthBarX + healthBarWidth/2, healthBarY + 15);
       this.ctx.textAlign = 'left';
 
@@ -440,12 +447,17 @@ class TankGame {
           );
           
           this.ctx.fillStyle = 'white';
-          this.ctx.font = '48px Arial';
+          this.ctx.font = '32px "Black Ops One"';
           this.ctx.textAlign = 'center';
           this.ctx.fillText(
-              `You reached Level ${this.gameLevel} (Wave ${this.level})!`,
+              `You reached Level ${this.gameLevel}`,
               this.canvas.width/2,
-              this.canvas.height - 100
+              this.canvas.height - 120
+          );
+          this.ctx.fillText(
+              `(Wave ${this.level})!`,
+              this.canvas.width/2,
+              this.canvas.height - 80
           );
       }
 
@@ -481,17 +493,17 @@ class TankGame {
           
           // Menü-Titel
           this.ctx.fillStyle = 'white';
-          this.ctx.font = '30px Arial';
+          this.ctx.font = '24px "Black Ops One"';
           this.ctx.textAlign = 'center';
-          this.ctx.fillText('Menü', this.canvas.width/2, menuY + 50);
+          this.ctx.fillText('MENU', this.canvas.width/2, menuY + 50);
 
           // Menü-Optionen
-          this.ctx.font = '20px Arial';
-          this.ctx.fillText('Drücke ESC zum Schließen', this.canvas.width/2, menuY + 100);
+          this.ctx.font = '16px "Black Ops One"';
+          this.ctx.fillText('Press ESC to close', this.canvas.width/2, menuY + 100);
           this.ctx.fillText(`Level: ${this.gameLevel}`, this.canvas.width/2, menuY + 150);
           this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.canvas.width/2, menuY + 175);
-          this.ctx.fillText(`Punkte: ${this.points}`, this.canvas.width/2, menuY + 200);
-          this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);  // Auch im Menü runden
+          this.ctx.fillText(`Points: ${this.points}`, this.canvas.width/2, menuY + 200);
+          this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);
       }
   }
 

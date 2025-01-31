@@ -193,9 +193,9 @@ class TankGame {
           }
       });
 
-      // Füge ESC-Taste zum Schließen des Menüs hinzu
+      // Füge ESC-Taste zum Öffnen/Schließen des Menüs hinzu
       window.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && this.isMenuOpen) {
+          if (e.key === 'Escape') {  // Geändert von "nur Schließen" zu "Öffnen und Schließen"
               this.toggleMenu();
           }
       });
@@ -428,7 +428,6 @@ class TankGame {
       this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 80);
       this.ctx.fillText(`Points: ${this.points}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 120);
       this.ctx.fillText(`Coins: ${this.currency}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 160);
-      this.ctx.fillText(`Health: ${Math.round(this.health)}`, 10, this.canvas.height - 20);
 
       // Health Bar in der rechten oberen Ecke - größere Dimensionen
       const healthBarWidth = 300;  // von 200 auf 300 erhöht

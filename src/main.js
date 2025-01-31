@@ -121,15 +121,15 @@ class TankGame {
       this.isDraggingMusicSlider = false;
       this.isDraggingSoundSlider = false;
 
-      // Joystick Konfiguration
+      // Joystick Konfiguration mit größeren Dimensionen
       this.joystick = {
           x: 100,  // Position links unten
           y: this.canvas.height - 100,
-          baseRadius: 50,  // Größe des äußeren Kreises
-          stickRadius: 20,  // Größe des inneren Sticks
-          currentX: 0,     // Aktuelle X-Position des Sticks
-          currentY: 0,     // Aktuelle Y-Position des Sticks
-          isPressed: false // Wird der Stick gerade benutzt?
+          baseRadius: 70,  // Von 50 auf 70 erhöht - äußerer Kreis
+          stickRadius: 30,  // Von 20 auf 30 erhöht - innerer Stick
+          currentX: 0,
+          currentY: 0,
+          isPressed: false
       };
       
       // Initialisiere Stick in der Mitte
@@ -380,6 +380,42 @@ class TankGame {
                   mouseY <= this.joystickButton.y + this.joystickButton.height
               ) {
                   this.toggleJoystick();
+              }
+          }
+      });
+
+      // Füge Click-Handler für die Continue/Next Level Buttons hinzu
+      this.canvas.addEventListener('click', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+
+          // Prüfe Game Over Button
+          if (this.gameOver && this.continueButton) {
+              if (
+                  mouseX >= this.continueButton.x &&
+                  mouseX <= this.continueButton.x + this.continueButton.width &&
+                  mouseY >= this.continueButton.y &&
+                  mouseY <= this.continueButton.y + this.continueButton.height
+              ) {
+                  this.restart();
+              }
+          }
+
+          // Prüfe Next Level Button
+          if (this.gameWon && this.nextLevelButton) {
+              if (
+                  mouseX >= this.nextLevelButton.x &&
+                  mouseX <= this.nextLevelButton.x + this.nextLevelButton.width &&
+                  mouseY >= this.nextLevelButton.y &&
+                  mouseY <= this.nextLevelButton.y + this.nextLevelButton.height
+              ) {
+                  this.gameWon = false;
+                  this.gameLevel++;
+                  this.level = 1;
+                  this.levelEnemies = 1;
+                  this.health = 100;
+                  this.spawnEnemies();
               }
           }
       });
@@ -673,6 +709,30 @@ class TankGame {
               this.canvas.width,
               this.canvas.height
           );
+
+          // Game Over Continue Button - Position noch weiter nach unten verschoben
+          const buttonWidth = 200;
+          const buttonHeight = 50;
+          const buttonX = this.canvas.width/2 - buttonWidth/2;
+          const buttonY = this.canvas.height - 70;  // Von -100 auf -70 geändert
+
+          // Button Hintergrund
+          this.ctx.fillStyle = '#555';
+          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+          // Button Text
+          this.ctx.fillStyle = 'white';
+          this.ctx.font = '20px "Black Ops One"';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText('Play Again', this.canvas.width/2, buttonY + 32);
+
+          // Speichere Button-Position
+          this.continueButton = {
+              x: buttonX,
+              y: buttonY,
+              width: buttonWidth,
+              height: buttonHeight
+          };
       }
 
       if (this.gameWon) {
@@ -684,19 +744,43 @@ class TankGame {
               this.canvas.height
           );
           
+          // Win Screen Stats
           this.ctx.fillStyle = 'white';
           this.ctx.font = '32px "Black Ops One"';
           this.ctx.textAlign = 'center';
           this.ctx.fillText(
               `You reached Level ${this.gameLevel}`,
               this.canvas.width/2,
-              this.canvas.height - 120
+              this.canvas.height - 200
           );
           this.ctx.fillText(
               `(Wave ${this.level})!`,
               this.canvas.width/2,
-              this.canvas.height - 80
+              this.canvas.height - 160
           );
+
+          // Next Level Button
+          const buttonWidth = 200;
+          const buttonHeight = 50;
+          const buttonX = this.canvas.width/2 - buttonWidth/2;
+          const buttonY = this.canvas.height - 100;
+
+          // Button Hintergrund
+          this.ctx.fillStyle = '#555';
+          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+          // Button Text
+          this.ctx.fillStyle = 'white';
+          this.ctx.font = '20px "Black Ops One"';
+          this.ctx.fillText('Next Level', this.canvas.width/2, buttonY + 32);
+
+          // Speichere Button-Position
+          this.nextLevelButton = {
+              x: buttonX,
+              y: buttonY,
+              width: buttonWidth,
+              height: buttonHeight
+          };
       }
 
       // Zeichne den Menü-Button

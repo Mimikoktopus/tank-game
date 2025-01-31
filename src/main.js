@@ -364,11 +364,21 @@ class TankGame {
 
       // Draw enemies
       this.enemies.forEach(enemy => {
-          this.ctx.drawImage(
-              this.enemyImage, 
-              enemy.x - this.enemyImage.width/2, 
-              enemy.y - this.enemyImage.height/2
+          this.ctx.save();
+          // Berechne den Winkel zum Spieler
+          const angle = Math.atan2(
+              this.playerY - enemy.y,
+              this.playerX - enemy.x
           );
+          // Verschiebe den Kontext zum Gegner und rotiere
+          this.ctx.translate(enemy.x, enemy.y);
+          this.ctx.rotate(angle);
+          this.ctx.drawImage(
+              this.enemyImage,
+              -this.enemyImage.width/2,
+              -this.enemyImage.height/2
+          );
+          this.ctx.restore();
       });
 
       // Draw bullets

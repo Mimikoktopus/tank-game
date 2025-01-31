@@ -47,13 +47,13 @@ class TankGame {
 
       // Füge Menü-Button Bild hinzu
       this.menuButtonImage = new Image();
-      this.menuButtonImage.src = 'Bilder/Sonstige/MenuButton.png';  // Du musst dieses Bild noch erstellen/hinzufügen
+      this.menuButtonImage.src = 'Bilder/Buttons/Menu.png';  // Du musst dieses Bild noch erstellen/hinzufügen
       
       // Menü-Button Position und Größe
       this.menuButton = {
           x: 20,
           y: 20,
-          width: 40,
+          width: 80,
           height: 40,
           isHovered: false
       };

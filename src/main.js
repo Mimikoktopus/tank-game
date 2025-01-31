@@ -102,6 +102,9 @@ class TankGame {
       // Füge Menü-Status hinzu
       this.isMenuOpen = false;
 
+      // Füge Musik-Status hinzu
+      this.isMusicPlaying = true;
+
       // Lade die Schriftart
       const link = document.createElement('link');
       link.href = 'https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap';
@@ -115,8 +118,10 @@ class TankGame {
       this.spawnEnemies();
       this.setupEventListeners();
       
-      // Starte die Hintergrundmusik
-      this.sounds.backgroundMusic.play();
+      // Starte die Hintergrundmusik nur wenn sie aktiviert ist
+      if (this.isMusicPlaying) {
+          this.sounds.backgroundMusic.play();
+      }
       
       this.gameLoop();
   }
@@ -197,6 +202,24 @@ class TankGame {
       window.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {  // Geändert von "nur Schließen" zu "Öffnen und Schließen"
               this.toggleMenu();
+          }
+      });
+
+      // Füge Click-Handler für Musik-Button hinzu
+      this.canvas.addEventListener('click', (e) => {
+          if (this.isMenuOpen && this.musicButton) {
+              const rect = this.canvas.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
+              
+              if (
+                  mouseX >= this.musicButton.x &&
+                  mouseX <= this.musicButton.x + this.musicButton.width &&
+                  mouseY >= this.musicButton.y &&
+                  mouseY <= this.musicButton.y + this.musicButton.height
+              ) {
+                  this.toggleMusic();
+              }
           }
       });
   }
@@ -341,7 +364,7 @@ class TankGame {
                   this.health = 0;
                   this.gameOver = true;
                   this.sounds.gameOver.play();
-                  this.sounds.backgroundMusic.stop();  // Stoppe Musik bei Game Over
+                  this.sounds.backgroundMusic.stop();  // Stoppe Musik bei Game Over, unabhängig von der Einstellung
               }
           }
       }
@@ -529,6 +552,33 @@ class TankGame {
           this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.canvas.width/2, menuY + 175);
           this.ctx.fillText(`Points: ${this.points}`, this.canvas.width/2, menuY + 200);
           this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);
+
+          // Musik-Button
+          const buttonWidth = 150;
+          const buttonHeight = 40;
+          const buttonX = this.canvas.width/2 - buttonWidth/2;
+          const buttonY = menuY + 300;
+
+          // Button Hintergrund
+          this.ctx.fillStyle = '#555';
+          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+          // Button Text
+          this.ctx.fillStyle = 'white';
+          this.ctx.font = '16px "Black Ops One"';
+          this.ctx.fillText(
+              this.isMusicPlaying ? 'Music: ON' : 'Music: OFF',
+              this.canvas.width/2,
+              buttonY + 25
+          );
+
+          // Speichere Button-Position für Click-Detection
+          this.musicButton = {
+              x: buttonX,
+              y: buttonY,
+              width: buttonWidth,
+              height: buttonHeight
+          };
       }
   }
 
@@ -560,7 +610,8 @@ class TankGame {
       this.gameWon = false;
       
       this.spawnEnemies();
-      if (!this.sounds.backgroundMusic.playing()) {
+      // Starte Musik nur wenn sie aktiviert ist
+      if (this.isMusicPlaying && !this.sounds.backgroundMusic.playing()) {
           this.sounds.backgroundMusic.play();
       }
   }
@@ -599,13 +650,21 @@ class TankGame {
       this.isMenuOpen = !this.isMenuOpen;
       
       if (this.isMenuOpen) {
-          // Spiel und Musik pausieren
+          // Nur das Spiel pausieren, Musik weiterlaufen lassen wenn aktiviert
           this.gamePaused = true;
-          this.sounds.backgroundMusic.pause();
       } else {
-          // Spiel und Musik fortsetzen
+          // Spiel fortsetzen
           this.gamePaused = false;
+      }
+  }
+
+  toggleMusic() {
+      this.isMusicPlaying = !this.isMusicPlaying;
+      if (this.isMusicPlaying) {
           this.sounds.backgroundMusic.play();
+      } else {
+          this.sounds.backgroundMusic.pause();
+          this.sounds.backgroundMusic.stop();  // Komplett stoppen statt nur pausieren
       }
   }
 }

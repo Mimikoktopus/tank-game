@@ -68,7 +68,10 @@ class TankGame {
           d: false
       };
 
-      // Sound setup
+      // Füge Musik-Lautstärke hinzu (0.0 bis 1.0)
+      this.musicVolume = 0.5;  // Start bei 50%
+      
+      // Sound setup mit initialer Lautstärke
       this.sounds = {
           shoot: new Howl({
               src: ['Sounds/Schuss.mp3'],
@@ -92,10 +95,10 @@ class TankGame {
           }),
           // Neue Hintergrundmusik
           backgroundMusic: new Howl({
-              src: ['Sounds/Music.mp3'],  // Stelle sicher, dass diese Datei existiert
-              volume: 0.3,  // Leiser als die Effekte
-              loop: true,   // Musik wird endlos wiederholt
-              autoplay: false  // Wir starten die Musik manuell
+              src: ['Sounds/Music.mp3'],
+              volume: this.musicVolume,
+              loop: true,
+              autoplay: false
           })
       };
 
@@ -111,6 +114,9 @@ class TankGame {
       link.rel = 'stylesheet';
       document.head.appendChild(link);
 
+      // Slider-Status für Drag-Funktionalität
+      this.isDraggingSlider = false;
+
       this.init();
   }
 
@@ -118,10 +124,9 @@ class TankGame {
       this.spawnEnemies();
       this.setupEventListeners();
       
-      // Starte die Hintergrundmusik nur wenn sie aktiviert ist
-      if (this.isMusicPlaying) {
-          this.sounds.backgroundMusic.play();
-      }
+      // Starte die Hintergrundmusik mit initialer Lautstärke
+      this.sounds.backgroundMusic.volume(this.musicVolume);
+      this.sounds.backgroundMusic.play();
       
       this.gameLoop();
   }
@@ -221,6 +226,37 @@ class TankGame {
                   this.toggleMusic();
               }
           }
+      });
+
+      // Slider Event Listeners
+      this.canvas.addEventListener('mousedown', (e) => {
+          if (this.isMenuOpen && this.volumeSlider) {
+              const rect = this.canvas.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
+              
+              if (
+                  mouseX >= this.volumeSlider.x &&
+                  mouseX <= this.volumeSlider.x + this.volumeSlider.width &&
+                  mouseY >= this.volumeSlider.y &&
+                  mouseY <= this.volumeSlider.y + this.volumeSlider.height
+              ) {
+                  this.isDraggingSlider = true;
+                  this.updateMusicVolume(mouseX);
+              }
+          }
+      });
+
+      this.canvas.addEventListener('mousemove', (e) => {
+          if (this.isDraggingSlider) {
+              const rect = this.canvas.getBoundingClientRect();
+              const mouseX = e.clientX - rect.left;
+              this.updateMusicVolume(mouseX);
+          }
+      });
+
+      window.addEventListener('mouseup', () => {
+          this.isDraggingSlider = false;
       });
   }
 
@@ -554,31 +590,47 @@ class TankGame {
           this.ctx.fillText(`Points: ${this.points}`, this.canvas.width/2, menuY + 200);
           this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);
 
-          // Musik-Button
-          const buttonWidth = 150;
-          const buttonHeight = 40;
-          const buttonX = this.canvas.width/2 - buttonWidth/2;
-          const buttonY = menuY + 300;
-
-          // Button Hintergrund
+          // Slider statt Button
+          const sliderWidth = 200;
+          const sliderHeight = 4;
+          const sliderX = this.canvas.width/2 - sliderWidth/2;
+          const sliderY = menuY + 300;
+          
+          // Slider Hintergrund
           this.ctx.fillStyle = '#555';
-          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
-
-          // Button Text
+          this.ctx.fillRect(sliderX, sliderY, sliderWidth, sliderHeight);
+          
+          // Slider Fortschritt
+          this.ctx.fillStyle = '#fff';
+          this.ctx.fillRect(sliderX, sliderY, sliderWidth * this.musicVolume, sliderHeight);
+          
+          // Slider Knopf
+          const knobSize = 15;
+          const knobX = sliderX + (sliderWidth * this.musicVolume) - (knobSize/2);
+          const knobY = sliderY + (sliderHeight/2) - (knobSize/2);
+          
+          this.ctx.beginPath();
+          this.ctx.arc(knobX + knobSize/2, sliderY + sliderHeight/2, knobSize/2, 0, Math.PI * 2);
+          this.ctx.fillStyle = '#fff';
+          this.ctx.fill();
+          
+          // Lautstärke Text
           this.ctx.fillStyle = 'white';
           this.ctx.font = '16px "Black Ops One"';
+          this.ctx.textAlign = 'center';
           this.ctx.fillText(
-              this.isMusicPlaying ? 'Music: ON' : 'Music: OFF',
+              'Music Volume',
               this.canvas.width/2,
-              buttonY + 25
+              sliderY - 10
           );
 
-          // Speichere Button-Position für Click-Detection
-          this.musicButton = {
-              x: buttonX,
-              y: buttonY,
-              width: buttonWidth,
-              height: buttonHeight
+          // Speichere Slider-Position für Click-Detection
+          this.volumeSlider = {
+              x: sliderX,
+              y: sliderY - knobSize/2,  // Erweitere Klickbereich
+              width: sliderWidth,
+              height: knobSize,
+              knobSize: knobSize
           };
 
           this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
@@ -669,6 +721,15 @@ class TankGame {
           this.sounds.backgroundMusic.pause();
           this.sounds.backgroundMusic.stop();  // Komplett stoppen statt nur pausieren
       }
+  }
+
+  updateMusicVolume(mouseX) {
+      // Berechne neue Lautstärke basierend auf Mausposition
+      let volume = (mouseX - this.volumeSlider.x) / this.volumeSlider.width;
+      volume = Math.max(0, Math.min(1, volume));  // Beschränke auf 0-1
+      
+      this.musicVolume = volume;
+      this.sounds.backgroundMusic.volume(volume);
   }
 }
 

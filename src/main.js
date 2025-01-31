@@ -294,22 +294,20 @@ class TankGame {
       }
 
       // Player-Enemy collision
-      for (let i = this.enemies.length - 1; i >= 0; i--) {
-          const enemy = this.enemies[i];
+      this.enemies.forEach(enemy => {
           const distance = Math.sqrt(
               Math.pow(this.playerX - enemy.x, 2) + 
               Math.pow(this.playerY - enemy.y, 2)
           );
-          if (distance < 40) {  // Collision distance für Player-Enemy
-              this.health -= 1;  // Schaden pro Frame
+          if (distance < 30) {  // Collision distance
+              // Reduziere den Schaden von 0.3 auf 0.15 pro Frame
+              this.health -= 0.15;
+              
               if (this.health <= 0) {
                   this.gameOver = true;
               }
-              if (!this.sounds.damage.playing()) {
-                  this.sounds.damage.play();
-              }
           }
-      }
+      });
   }
 
   render() {

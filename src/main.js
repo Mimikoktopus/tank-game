@@ -587,9 +587,9 @@ class TankGame {
           this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
           this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-          // Menü-Box
+          // Menü-Box mit größerer Höhe
           const menuWidth = 300;
-          const menuHeight = 400;
+          const menuHeight = 500;  // Von 400 auf 500 erhöht
           const menuX = (this.canvas.width - menuWidth) / 2;
           const menuY = (this.canvas.height - menuHeight) / 2;
 

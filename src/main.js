@@ -11,8 +11,9 @@ class TankGame {
       this.playerX = this.canvas.width / 2;
       this.playerY = this.canvas.height / 2;
       this.playerRotation = 0;
+      this.gameLevel = 1;
       this.level = 1;
-      this.levelEnemies = 5;
+      this.levelEnemies = 1;  // Starte mit einem Gegner
       this.points = 0;
       this.highscore = 0;
       this.health = 100;
@@ -90,6 +91,9 @@ class TankGame {
           })
       };
 
+      // Füge Menü-Status hinzu
+      this.isMenuOpen = false;
+
       this.init();
   }
 
@@ -101,7 +105,7 @@ class TankGame {
 
   spawnEnemies() {
       const sides = ['top', 'bottom', 'left', 'right'];
-      while (this.enemies.length < this.level) {
+      while (this.enemies.length < this.levelEnemies) {
           const side = sides[Math.floor(Math.random() * sides.length)];
           let x, y;
           switch(side) {
@@ -170,6 +174,13 @@ class TankGame {
               this.toggleMenu();
           }
       });
+
+      // Füge ESC-Taste zum Schließen des Menüs hinzu
+      window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.isMenuOpen) {
+              this.toggleMenu();
+          }
+      });
   }
 
   handleKeyPress(e) {
@@ -196,8 +207,8 @@ class TankGame {
   }
 
   fireBullet(e) {
-      // Keine Schüsse wenn das Spiel vorbei ist
-      if (this.gameOver || this.gameWon) return;
+      // Keine Schüsse wenn das Spiel vorbei ist oder das Menü offen ist
+      if (this.gameOver || this.gameWon || this.isMenuOpen) return;
       
       const bulletSpeed = 10;
       const angle = Math.atan2(
@@ -237,8 +248,8 @@ class TankGame {
               this.playerY - enemy.y, 
               this.playerX - enemy.x
           );
-          enemy.x += Math.cos(angle) * 3;
-          enemy.y += Math.sin(angle) * 3;
+          enemy.x += Math.cos(angle) * 2.5;
+          enemy.y += Math.sin(angle) * 2.5;
       });
   }
 
@@ -261,6 +272,25 @@ class TankGame {
                   break;
               }
           }
+      }
+
+      // Prüfe, ob Level abgeschlossen ist
+      if (this.enemies.length === 0) {
+          // Prüfe zuerst, ob Wave 5 geschafft wurde
+          if (this.level >= 5) {
+              this.gameLevel++;  // Erhöhe das Level
+              this.level = 1;    // Setze Wave zurück auf 1
+              this.levelEnemies = 1;  // Starte wieder mit einem Gegner
+              this.health = 100;  // Volle Gesundheit für das neue Level
+              this.spawnEnemies();
+              return;
+          }
+          
+          this.level++;
+          this.sounds.levelUp.play();
+          // Pro Wave nur 1 Gegner mehr
+          this.levelEnemies = this.level;
+          this.spawnEnemies();
       }
 
       // Player-Enemy collision
@@ -334,9 +364,11 @@ class TankGame {
       // Draw UI
       this.ctx.fillStyle = 'white';
       this.ctx.font = '20px Arial';
-      this.ctx.fillText(`Level: ${this.level}`, 10, 30);
-      this.ctx.fillText(`Points: ${this.points}`, 10, 60);
-      this.ctx.fillText(`Coins: ${this.currency}`, 10, 90);
+      this.ctx.fillText(`Level: ${this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 30);
+      this.ctx.fillText(`Wave: ${this.level}/5`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 60);
+      this.ctx.fillText(`Points: ${this.points}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 90);
+      this.ctx.fillText(`Coins: ${this.currency}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 120);
+      this.ctx.fillText(`Health: ${Math.round(this.health)}`, 10, this.canvas.height - 20);  // Nur bei der Anzeige runden
 
       // Health Bar in der rechten oberen Ecke
       const healthBarWidth = 200;
@@ -357,7 +389,7 @@ class TankGame {
       // Health Text
       this.ctx.fillStyle = 'white';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText(`${this.health}%`, healthBarX + healthBarWidth/2, healthBarY + 15);
+      this.ctx.fillText(`${Math.round(this.health)}%`, healthBarX + healthBarWidth/2, healthBarY + 15);
       this.ctx.textAlign = 'left';
 
       if (this.gameOver) {
@@ -383,7 +415,7 @@ class TankGame {
           this.ctx.font = '48px Arial';
           this.ctx.textAlign = 'center';
           this.ctx.fillText(
-              `Congratulations! You reached Level ${this.level}!`,
+              `Congratulations! You reached Wave ${this.level}!`,
               this.canvas.width/2,
               this.canvas.height - 100
           );
@@ -402,25 +434,46 @@ class TankGame {
           this.menuButton.height
       );
       this.ctx.restore();
+
+      // Zeichne das Menü, wenn es geöffnet ist
+      if (this.isMenuOpen) {
+          // Halbtransparenter schwarzer Hintergrund
+          this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+          // Menü-Box
+          const menuWidth = 300;
+          const menuHeight = 400;
+          const menuX = (this.canvas.width - menuWidth) / 2;
+          const menuY = (this.canvas.height - menuHeight) / 2;
+
+          // Menü-Hintergrund
+          this.ctx.fillStyle = '#333';
+          this.ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
+          
+          // Menü-Titel
+          this.ctx.fillStyle = 'white';
+          this.ctx.font = '30px Arial';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText('Menü', this.canvas.width/2, menuY + 50);
+
+          // Menü-Optionen
+          this.ctx.font = '20px Arial';
+          this.ctx.fillText('Drücke ESC zum Schließen', this.canvas.width/2, menuY + 100);
+          this.ctx.fillText(`Level: ${this.gameLevel}`, this.canvas.width/2, menuY + 150);
+          this.ctx.fillText(`Wave: ${this.level}/5`, this.canvas.width/2, menuY + 175);
+          this.ctx.fillText(`Punkte: ${this.points}`, this.canvas.width/2, menuY + 200);
+          this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);  // Auch im Menü runden
+      }
   }
 
   gameLoop() {
-      if (!this.gameOver) {
+      // Nur updaten wenn das Spiel nicht pausiert ist
+      if (!this.gameOver && !this.isMenuOpen) {
           this.updatePlayerMovement();
           this.updateBullets();
           this.updateEnemies();
           this.checkCollisions();
-          this.render();
-
-          if (this.enemies.length === 0) {
-              if (this.level % 5 === 0) {
-                  this.gameWon = true;
-              } else {
-                  this.level++;
-                  this.sounds.levelUp.play();
-                  this.spawnEnemies();
-              }
-          }
       }
       
       this.render();
@@ -431,7 +484,9 @@ class TankGame {
       this.playerX = this.canvas.width / 2;
       this.playerY = this.canvas.height / 2;
       this.playerRotation = 0;
-      this.level = 1;
+      this.gameLevel = 1;  // Level zurücksetzen
+      this.level = 1;      // Wave zurücksetzen
+      this.levelEnemies = 1;  // Stelle sicher, dass wir mit einem Gegner starten
       this.points = 0;
       this.health = 100;
       this.currency = 0;
@@ -441,7 +496,6 @@ class TankGame {
       this.gameWon = false;
       
       this.spawnEnemies();
-      this.gameLoop();
   }
 
   // Neue Methode für Bewegungsupdate
@@ -475,9 +529,15 @@ class TankGame {
   }
 
   toggleMenu() {
-      // Hier kannst du die Menü-Logik implementieren
-      console.log('Menu clicked!');
-      // Zum Beispiel: Spiel pausieren, Optionen anzeigen, etc.
+      this.isMenuOpen = !this.isMenuOpen;
+      
+      if (this.isMenuOpen) {
+          // Spiel pausieren
+          this.gamePaused = true;
+      } else {
+          // Spiel fortsetzen
+          this.gamePaused = false;
+      }
   }
 }
 

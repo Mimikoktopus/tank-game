@@ -444,9 +444,10 @@ class TankGame {
 
       // Draw UI - Größere Schrift und mehr Abstand
       this.ctx.fillStyle = 'white';
-      this.ctx.font = '24px "Black Ops One"';  // von 16px auf 24px erhöht
+      this.ctx.font = '24px "Black Ops One"';
+      this.ctx.textAlign = 'left';
       
-      // Mehr vertikaler Abstand zwischen den Elementen (von +30 auf +40)
+      // Mehr vertikaler Abstand zwischen den Elementen
       this.ctx.fillText(`Level: ${this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 40);
       this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 80);
       this.ctx.fillText(`Points: ${this.points}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 120);
@@ -579,6 +580,8 @@ class TankGame {
               width: buttonWidth,
               height: buttonHeight
           };
+
+          this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
       }
   }
 

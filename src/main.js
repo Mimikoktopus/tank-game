@@ -275,6 +275,8 @@ class TankGame {
               this.playerY - enemy.y, 
               this.playerX - enemy.x
           );
+          // Speichere die Rotation im Enemy-Objekt
+          enemy.rotation = angle;
           enemy.x += Math.cos(angle) * 2.5;
           enemy.y += Math.sin(angle) * 2.5;
       });
@@ -371,14 +373,8 @@ class TankGame {
       // Draw enemies
       this.enemies.forEach(enemy => {
           this.ctx.save();
-          // Berechne den Winkel zum Spieler
-          const angle = Math.atan2(
-              this.playerY - enemy.y,
-              this.playerX - enemy.x
-          );
-          // Verschiebe den Kontext zum Gegner und rotiere
           this.ctx.translate(enemy.x, enemy.y);
-          this.ctx.rotate(angle);
+          this.ctx.rotate(enemy.rotation); // Nutze die gespeicherte Rotation
           this.ctx.drawImage(
               this.enemyImage,
               -this.enemyImage.width/2,

@@ -199,6 +199,16 @@ class TankGame {
           this.restart();
           return;
       }
+
+      // Neuer Kill-Switch
+      if (e.key === 'k' && !this.gameOver && !this.gameWon && !this.isMenuOpen) {
+          this.enemies.forEach(enemy => {
+              this.points++;  // Punkte für jeden getöteten Gegner
+              this.currency++;  // Währung für jeden getöteten Gegner
+              this.sounds.explosion.play();
+          });
+          this.enemies = [];  // Leere das Gegner-Array
+      }
       
       if (e.key in this.keys) {
           this.keys[e.key] = true;
@@ -423,7 +433,7 @@ class TankGame {
           this.ctx.font = '48px Arial';
           this.ctx.textAlign = 'center';
           this.ctx.fillText(
-              `Congratulations! You reached Wave ${this.level}!`,
+              `You reached Level ${this.gameLevel} (Wave ${this.level})!`,
               this.canvas.width/2,
               this.canvas.height - 100
           );

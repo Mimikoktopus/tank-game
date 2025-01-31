@@ -1,3 +1,5 @@
+import { Howl } from 'howler';
+
 class TankGame {
   constructor() {
       this.canvas = document.getElementById('app');
@@ -26,22 +28,22 @@ class TankGame {
 
       // Images (placeholder, you'll need to replace with actual image loading)
       this.playerImage = new Image();
-      this.playerImage.src = 'PanzerUntersatz.png';
+      this.playerImage.src = 'Bilder/Panzer1Skins/PanzerUntersatz.png';
       
       this.turretImage = new Image();
-      this.turretImage.src = 'PanzerKanonenturm.png';
+      this.turretImage.src = 'Bilder/Panzer1Skins/PanzerKanonenturm.png';
       
       this.enemyImage = new Image();
-      this.enemyImage.src = 'Feind.png';
+      this.enemyImage.src = 'Bilder/Sonstige/Feind.png';
 
       this.background = new Image();
-      this.background.src = "Hintergrund.jpg";
+      this.background.src = "Bilder/Hintergrund/Hintergrund.jpg";
 
       this.gameOverImage = new Image();
-      this.gameOverImage.src = "Gameover.jpg";
+      this.gameOverImage.src = "Bilder/Hintergrund/Gameover.jpg";
 
       this.winImage = new Image();
-      this.winImage.src = "win.jpg";
+      this.winImage.src = "Bilder/Hintergrund/win.jpg";
 
       // Bewegungsstatus für mehrere Tasten
       this.keys = {
@@ -49,6 +51,30 @@ class TankGame {
           s: false,
           a: false,
           d: false
+      };
+
+      // Sound setup
+      this.sounds = {
+          shoot: new Howl({
+              src: ['Sounds/Schuss.mp3'],
+              volume: 0.5
+          }),
+          explosion: new Howl({
+              src: ['Sounds/TodG.mp3'],
+              volume: 0.6
+          }),
+          damage: new Howl({
+              src: ['sounds/damage.mp3'],
+              volume: 0.7
+          }),
+          levelUp: new Howl({
+              src: ['sounds/levelup.mp3'],
+              volume: 0.8
+          }),
+          gameOver: new Howl({
+              src: ['sounds/gameover.mp3'],
+              volume: 1.0
+          })
       };
 
       this.init();
@@ -88,7 +114,13 @@ class TankGame {
   }
 
   setupEventListeners() {
-      window.addEventListener('keydown', (e) => this.handleKeyPress(e));
+      window.addEventListener('keydown', (e) => {
+          // Resume AudioContext on first user interaction
+          if (Howler.ctx.state === 'suspended') {
+              Howler.ctx.resume();
+          }
+          this.handleKeyPress(e);
+      });
       window.addEventListener('keyup', (e) => {
           if (e.key in this.keys) {
               this.keys[e.key] = false;
@@ -133,6 +165,7 @@ class TankGame {
           dx: Math.cos(angle) * bulletSpeed,
           dy: Math.sin(angle) * bulletSpeed
       });
+      this.sounds.shoot.play();
   }
 
   updateBullets() {
@@ -179,6 +212,7 @@ class TankGame {
                   this.enemies.splice(j, 1);
                   this.points++;
                   this.currency++;
+                  this.sounds.explosion.play();
                   break;
               }
           }
@@ -195,6 +229,9 @@ class TankGame {
               this.health -= 1;  // Schaden pro Frame
               if (this.health <= 0) {
                   this.gameOver = true;
+              }
+              if (!this.sounds.damage.playing()) {
+                  this.sounds.damage.play();
               }
           }
       }
@@ -301,7 +338,7 @@ class TankGame {
           this.ctx.font = '48px Arial';
           this.ctx.textAlign = 'center';
           this.ctx.fillText(
-              `Congratulations! You scored ${this.points} points!`,
+              `Congratulations! You reached Level ${this.level}!`,
               this.canvas.width/2,
               this.canvas.height - 100
           );
@@ -321,6 +358,7 @@ class TankGame {
                   this.gameWon = true;
               } else {
                   this.level++;
+                  this.sounds.levelUp.play();
                   this.spawnEnemies();
               }
           }

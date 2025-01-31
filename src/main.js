@@ -395,24 +395,26 @@ class TankGame {
           this.ctx.fill();
       });
 
-      // Draw UI
+      // Draw UI - Größere Schrift und mehr Abstand
       this.ctx.fillStyle = 'white';
-      this.ctx.font = '16px "Black Ops One"';
-      this.ctx.fillText(`Level: ${this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 30);
-      this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 60);
-      this.ctx.fillText(`Points: ${this.points}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 90);
-      this.ctx.fillText(`Coins: ${this.currency}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 120);
+      this.ctx.font = '24px "Black Ops One"';  // von 16px auf 24px erhöht
+      
+      // Mehr vertikaler Abstand zwischen den Elementen (von +30 auf +40)
+      this.ctx.fillText(`Level: ${this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 40);
+      this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 80);
+      this.ctx.fillText(`Points: ${this.points}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 120);
+      this.ctx.fillText(`Coins: ${this.currency}`, this.menuButton.x, this.menuButton.y + this.menuButton.height + 160);
       this.ctx.fillText(`Health: ${Math.round(this.health)}`, 10, this.canvas.height - 20);
 
-      // Health Bar in der rechten oberen Ecke
-      const healthBarWidth = 200;
-      const healthBarHeight = 20;
+      // Health Bar in der rechten oberen Ecke - größere Dimensionen
+      const healthBarWidth = 300;  // von 200 auf 300 erhöht
+      const healthBarHeight = 30;  // von 20 auf 30 erhöht
       const healthBarX = this.canvas.width - healthBarWidth - 20;
       const healthBarY = 20;
 
       // Äußerer Rahmen
       this.ctx.strokeStyle = 'white';
-      this.ctx.lineWidth = 2;
+      this.ctx.lineWidth = 3;  // von 2 auf 3 erhöht für bessere Sichtbarkeit
       this.ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
 
       // Health-Füllstand
@@ -420,11 +422,11 @@ class TankGame {
       this.ctx.fillStyle = `rgb(${255 - (this.health * 2.55)}, ${this.health * 2.55}, 0)`;
       this.ctx.fillRect(healthBarX, healthBarY, currentHealthWidth, healthBarHeight);
 
-      // Health Bar Text
-      this.ctx.font = '12px "Black Ops One"';
+      // Health Bar Text - größere Schrift
+      this.ctx.font = '20px "Black Ops One"';  // von 12px auf 20px erhöht
       this.ctx.textAlign = 'center';
       this.ctx.fillStyle = 'white';
-      this.ctx.fillText(`${Math.round(this.health)}%`, healthBarX + healthBarWidth/2, healthBarY + 15);
+      this.ctx.fillText(`${Math.round(this.health)}%`, healthBarX + healthBarWidth/2, healthBarY + 22);  // Y-Position angepasst
       this.ctx.textAlign = 'left';
 
       if (this.gameOver) {

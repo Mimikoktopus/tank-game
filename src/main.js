@@ -615,7 +615,7 @@ class TankGame {
           const sliderWidth = 200;
           const sliderHeight = 4;
           const musicSliderY = menuY + 300;
-          const soundSliderY = menuY + 370;  // 70 Pixel tiefer
+          const soundSliderY = menuY + 370;  // Mehr Abstand für die Prozentzahl
           const sliderX = this.canvas.width/2 - sliderWidth/2;
           
           // Funktion zum Zeichnen eines Sliders
@@ -642,9 +642,16 @@ class TankGame {
               this.ctx.font = '16px "Black Ops One"';
               this.ctx.textAlign = 'center';
               this.ctx.fillText(label, this.canvas.width/2, y - 10);
+              
+              // Prozentzahl
+              this.ctx.fillText(
+                  `${Math.round(value * 100)}%`,
+                  this.canvas.width/2,
+                  y + 25  // 25 Pixel unter dem Slider
+              );
           };
 
-          // Zeichne beide Slider
+          // Zeichne beide Slider mit Prozentzahlen
           drawSlider(musicSliderY, this.musicVolume, 'Music Volume');
           drawSlider(soundSliderY, this.soundVolume, 'Sound Effects Volume');
 

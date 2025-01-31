@@ -121,6 +121,21 @@ class TankGame {
       this.isDraggingMusicSlider = false;
       this.isDraggingSoundSlider = false;
 
+      // Joystick Konfiguration
+      this.joystick = {
+          x: 100,  // Position links unten
+          y: this.canvas.height - 100,
+          baseRadius: 50,  // Größe des äußeren Kreises
+          stickRadius: 20,  // Größe des inneren Sticks
+          currentX: 0,     // Aktuelle X-Position des Sticks
+          currentY: 0,     // Aktuelle Y-Position des Sticks
+          isPressed: false // Wird der Stick gerade benutzt?
+      };
+      
+      // Initialisiere Stick in der Mitte
+      this.joystick.currentX = this.joystick.x;
+      this.joystick.currentY = this.joystick.y;
+
       this.init();
   }
 
@@ -279,6 +294,65 @@ class TankGame {
           this.isDraggingMusicSlider = false;
           this.isDraggingSoundSlider = false;
       });
+
+      // Touch/Mouse Events für Joystick
+      const handleStart = (e) => {
+          const pos = this.getInputPosition(e);
+          const dist = Math.sqrt(
+              Math.pow(pos.x - this.joystick.x, 2) + 
+              Math.pow(pos.y - this.joystick.y, 2)
+          );
+          
+          if (dist < this.joystick.baseRadius) {
+              this.joystick.isPressed = true;
+          }
+      };
+
+      const handleMove = (e) => {
+          if (this.joystick.isPressed) {
+              const pos = this.getInputPosition(e);
+              const dx = pos.x - this.joystick.x;
+              const dy = pos.y - this.joystick.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              
+              if (distance < this.joystick.baseRadius) {
+                  this.joystick.currentX = pos.x;
+                  this.joystick.currentY = pos.y;
+              } else {
+                  const angle = Math.atan2(dy, dx);
+                  this.joystick.currentX = this.joystick.x + Math.cos(angle) * this.joystick.baseRadius;
+                  this.joystick.currentY = this.joystick.y + Math.sin(angle) * this.joystick.baseRadius;
+              }
+              
+              // Berechne Rotation und Bewegung basierend auf Joystick-Position
+              const joyDx = this.joystick.currentX - this.joystick.x;
+              const joyDy = this.joystick.currentY - this.joystick.y;
+              
+              if (Math.abs(joyDx) > 10 || Math.abs(joyDy) > 10) {
+                  this.playerRotation = Math.atan2(joyDy, joyDx);
+                  this.keys.w = true;  // Vorwärtsbewegung wenn Joystick nicht zentriert
+              } else {
+                  this.keys.w = false;
+              }
+          }
+      };
+
+      const handleEnd = () => {
+          this.joystick.isPressed = false;
+          this.joystick.currentX = this.joystick.x;
+          this.joystick.currentY = this.joystick.y;
+          this.keys.w = false;
+      };
+
+      // Mouse Events
+      this.canvas.addEventListener('mousedown', handleStart);
+      this.canvas.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleEnd);
+
+      // Touch Events
+      this.canvas.addEventListener('touchstart', handleStart);
+      this.canvas.addEventListener('touchmove', handleMove);
+      window.addEventListener('touchend', handleEnd);
   }
 
   handleKeyPress(e) {
@@ -687,6 +761,29 @@ class TankGame {
 
           this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
       }
+
+      // Zeichne Joystick
+      if (!this.gameOver && !this.gameWon && !this.isMenuOpen) {
+          // Äußerer Kreis (Base)
+          this.ctx.beginPath();
+          this.ctx.arc(this.joystick.x, this.joystick.y, this.joystick.baseRadius, 0, Math.PI * 2);
+          this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          this.ctx.fill();
+          this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          this.ctx.stroke();
+
+          // Innerer Kreis (Stick)
+          this.ctx.beginPath();
+          this.ctx.arc(
+              this.joystick.currentX,
+              this.joystick.currentY,
+              this.joystick.stickRadius,
+              0,
+              Math.PI * 2
+          );
+          this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          this.ctx.fill();
+      }
   }
 
   gameLoop() {
@@ -793,6 +890,22 @@ class TankGame {
               this.sounds[key].volume(volume);
           }
       });
+  }
+
+  // Hilfsfunktion zum Ermitteln der Input-Position
+  getInputPosition(e) {
+      const rect = this.canvas.getBoundingClientRect();
+      let x, y;
+      
+      if (e.touches) {  // Touch Event
+          x = e.touches[0].clientX - rect.left;
+          y = e.touches[0].clientY - rect.top;
+      } else {  // Mouse Event
+          x = e.clientX - rect.left;
+          y = e.clientY - rect.top;
+      }
+      
+      return { x, y };
   }
 }
 

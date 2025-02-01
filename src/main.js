@@ -717,7 +717,7 @@ class TankGame {
       // Draw turret with separate rotation
       this.ctx.save();
       this.ctx.translate(this.playerX, this.playerY);
-      this.ctx.rotate(this.turretRotation - this.playerRotation);
+      this.ctx.rotate(this.turretRotation);
       this.ctx.drawImage(
           this.turretImage,
           -this.turretImage.width/2,

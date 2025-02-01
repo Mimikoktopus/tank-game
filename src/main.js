@@ -121,23 +121,23 @@ class TankGame {
       this.isDraggingMusicSlider = false;
       this.isDraggingSoundSlider = false;
 
-      // Bewegungs-Joystick (bestehender)
+      // Bewegungs-Joystick mit doppelter Größe
       this.joystick = {
-          x: 100,
-          y: this.canvas.height - 100,
-          baseRadius: 70,
-          stickRadius: 30,
+          x: 140,  // Etwas weiter von der Ecke weg
+          y: this.canvas.height - 140,  // Etwas weiter von der Ecke weg
+          baseRadius: 140,  // Von 70 auf 140 verdoppelt
+          stickRadius: 60,  // Von 30 auf 60 verdoppelt
           currentX: 0,
           currentY: 0,
           isPressed: false
       };
 
-      // Neuer Schieß-Joystick
+      // Schieß-Joystick mit doppelter Größe
       this.shootJoystick = {
-          x: this.canvas.width - 100,  // Rechte Seite
-          y: this.canvas.height - 100, // Unten
-          baseRadius: 70,
-          stickRadius: 30,
+          x: this.canvas.width - 140,  // Etwas weiter von der Ecke weg
+          y: this.canvas.height - 140,  // Etwas weiter von der Ecke weg
+          baseRadius: 140,  // Von 70 auf 140 verdoppelt
+          stickRadius: 60,  // Von 30 auf 60 verdoppelt
           currentX: 0,
           currentY: 0,
           isPressed: false

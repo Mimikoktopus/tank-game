@@ -152,6 +152,9 @@ class TankGame {
       // Joystick Sichtbarkeits-Status - standardmäßig ausgeschaltet
       this.showJoystick = false;  // Von true auf false geändert
 
+      // Füge Unverwundbarkeits-Status hinzu
+      this.isInvulnerable = false;
+
       this.init();
   }
 
@@ -469,6 +472,13 @@ class TankGame {
               }
           }
       });
+
+      // Füge Tastatur-Event für Unverwundbarkeit hinzu
+      window.addEventListener('keydown', (e) => {
+          if (e.key.toLowerCase() === 'u') {
+              this.isInvulnerable = !this.isInvulnerable;  // Toggle Unverwundbarkeit
+          }
+      });
   }
 
   handleKeyPress(e) {
@@ -503,11 +513,19 @@ class TankGame {
   }
 
   handleMouseMove(e) {
-      // Berechne Winkel zum Mauszeiger
-      this.turretRotation = Math.atan2(
-          e.clientY - this.playerY,
-          e.clientX - this.playerX
-      );
+      if (this.gameOver || this.gameWon || this.isMenuOpen) return;
+
+      // Berechne Turm-Rotation nur wenn Joysticks nicht aktiv sind
+      if (!this.showJoystick || (!this.joystick.isPressed && !this.shootJoystick.isPressed)) {
+          const rect = this.canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          // Berechne Winkel zur Mausposition
+          const dx = mouseX - this.playerX;
+          const dy = mouseY - this.playerY;
+          this.turretRotation = Math.atan2(dy, dx);
+      }
   }
 
   handleMouseClick(e) {
@@ -635,20 +653,15 @@ class TankGame {
 
       // Player-Enemy collision mit größerer Hitbox
       for (let enemy of this.enemies) {
-          const distance = Math.sqrt(
-              Math.pow(this.playerX - enemy.x, 2) + 
-              Math.pow(this.playerY - enemy.y, 2)
-          );
+          const dx = enemy.x - this.playerX;
+          const dy = enemy.y - this.playerY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
           
           if (distance < 45) {  // Von 30 auf 45 erhöht für größere Hitbox
-              this.health -= 0.5;
-              this.sounds.damage.play();
-              
-              if (this.health <= 0) {
-                  this.health = 0;
-                  this.gameOver = true;
-                  this.sounds.gameOver.play();
-                  this.sounds.backgroundMusic.stop();  // Stoppe Musik bei Game Over, unabhängig von der Einstellung
+              // Nur Schaden nehmen wenn nicht unverwundbar
+              if (!this.isInvulnerable) {
+                  this.health -= 0.5;
+                  this.sounds.damage.play();
               }
           }
       }
@@ -670,6 +683,13 @@ class TankGame {
               this.levelEnemies = Math.ceil(this.level / 2);
               this.spawnEnemies();
           }
+      }
+
+      if (this.health <= 0 && !this.isInvulnerable) {  // Game Over nur wenn nicht unverwundbar
+          this.health = 0;
+          this.gameOver = true;
+          this.sounds.gameOver.play();
+          this.sounds.backgroundMusic.stop();
       }
   }
 
@@ -1014,6 +1034,14 @@ class TankGame {
           );
           this.ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
           this.ctx.fill();
+      }
+
+      // Zeige Unverwundbarkeits-Status an
+      if (this.isInvulnerable) {
+          this.ctx.fillStyle = 'yellow';
+          this.ctx.font = '24px "Black Ops One"';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText('INVULNERABLE', this.canvas.width/2, 30);
       }
   }
 

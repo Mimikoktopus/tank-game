@@ -781,85 +781,11 @@ class TankGame {
       this.ctx.textAlign = 'left';
 
       if (this.gameOver) {
-          this.ctx.drawImage(
-              this.gameOverImage,
-              0,
-              0,
-              this.canvas.width,
-              this.canvas.height
-          );
-
-          // Game Over Continue Button - nochmal 5 Pixel höher
-          const buttonWidth = 200;
-          const buttonHeight = 50;
-          const buttonX = this.canvas.width/2 - buttonWidth/2;
-          const buttonY = this.canvas.height - 55;  // Von -50 auf -55 geändert
-
-          // Button Hintergrund
-          this.ctx.fillStyle = '#ff0000';
-          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
-
-          // Button Text
-          this.ctx.fillStyle = 'white';
-          this.ctx.font = '20px "Black Ops One"';
-          this.ctx.textAlign = 'center';
-          this.ctx.fillText('Play Again', this.canvas.width/2, buttonY + 32);
-
-          // Speichere Button-Position
-          this.continueButton = {
-              x: buttonX,
-              y: buttonY,
-              width: buttonWidth,
-              height: buttonHeight
-          };
+          this.#renderGameOver();
       }
 
       if (this.gameWon) {
-          this.ctx.drawImage(
-              this.winImage,
-              0,
-              0,
-              this.canvas.width,
-              this.canvas.height
-          );
-          
-          // Win Screen Stats - Position ganz nach oben verschoben
-          this.ctx.fillStyle = 'white';
-          this.ctx.font = '32px "Black Ops One"';
-          this.ctx.textAlign = 'center';
-          this.ctx.fillText(
-              `You reached Level ${this.gameLevel}`,
-              this.canvas.width/2,
-              100  // Feste Position nahe dem oberen Rand
-          );
-          this.ctx.fillText(
-              `(Wave ${this.level})!`,
-              this.canvas.width/2,
-              140  // 40 Pixel Abstand zum ersten Text
-          );
-
-          // Next Level Button - gleiche Farbe wie Play Again
-          const buttonWidth = 200;
-          const buttonHeight = 50;
-          const buttonX = this.canvas.width/2 - buttonWidth/2;
-          const buttonY = this.canvas.height - 100;
-
-          // Button Hintergrund - jetzt in Rot
-          this.ctx.fillStyle = '#ff0000';  // Rot statt #555
-          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
-
-          // Button Text
-          this.ctx.fillStyle = 'white';
-          this.ctx.font = '20px "Black Ops One"';
-          this.ctx.fillText('Next Level', this.canvas.width/2, buttonY + 32);
-
-          // Speichere Button-Position
-          this.nextLevelButton = {
-              x: buttonX,
-              y: buttonY,
-              width: buttonWidth,
-              height: buttonHeight
-          };
+          this.#renderWinScreen();
       }
 
       // Zeichne den Menü-Button
@@ -878,121 +804,7 @@ class TankGame {
 
       // Zeichne das Menü, wenn es geöffnet ist
       if (this.isMenuOpen) {
-          // Halbtransparenter schwarzer Hintergrund
-          this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-          this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-          // Menü-Box mit größerer Höhe
-          const menuWidth = 300;
-          const menuHeight = 500;  // Von 400 auf 500 erhöht
-          const menuX = (this.canvas.width - menuWidth) / 2;
-          const menuY = (this.canvas.height - menuHeight) / 2;
-
-          // Menü-Hintergrund
-          this.ctx.fillStyle = '#333';
-          this.ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
-          
-          // Menü-Titel
-          this.ctx.fillStyle = 'white';
-          this.ctx.font = '24px "Black Ops One"';
-          this.ctx.textAlign = 'center';
-          this.ctx.fillText('MENU', this.canvas.width/2, menuY + 50);
-
-          // Menü-Optionen
-          this.ctx.font = '16px "Black Ops One"';
-          this.ctx.fillText('Press ESC to close', this.canvas.width/2, menuY + 100);
-          this.ctx.fillText(`Level: ${this.gameLevel}`, this.canvas.width/2, menuY + 150);
-          this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.canvas.width/2, menuY + 175);
-          this.ctx.fillText(`Points: ${this.points}`, this.canvas.width/2, menuY + 200);
-          this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);
-
-          // Musik-Slider
-          const sliderWidth = 200;
-          const sliderHeight = 4;
-          const musicSliderY = menuY + 300;
-          const soundSliderY = menuY + 370;  // Mehr Abstand für die Prozentzahl
-          const sliderX = this.canvas.width/2 - sliderWidth/2;
-          
-          // Funktion zum Zeichnen eines Sliders
-          const drawSlider = (y, value, label) => {
-              // Slider Hintergrund
-              this.ctx.fillStyle = '#555';
-              this.ctx.fillRect(sliderX, y, sliderWidth, sliderHeight);
-              
-              // Slider Fortschritt
-              this.ctx.fillStyle = '#fff';
-              this.ctx.fillRect(sliderX, y, sliderWidth * value, sliderHeight);
-              
-              // Slider Knopf
-              const knobSize = 15;
-              const knobX = sliderX + (sliderWidth * value) - (knobSize/2);
-              
-              this.ctx.beginPath();
-              this.ctx.arc(knobX + knobSize/2, y + sliderHeight/2, knobSize/2, 0, Math.PI * 2);
-              this.ctx.fillStyle = '#fff';
-              this.ctx.fill();
-              
-              // Label
-              this.ctx.fillStyle = 'white';
-              this.ctx.font = '16px "Black Ops One"';
-              this.ctx.textAlign = 'center';
-              this.ctx.fillText(label, this.canvas.width/2, y - 10);
-              
-              // Prozentzahl
-              this.ctx.fillText(
-                  `${Math.round(value * 100)}%`,
-                  this.canvas.width/2,
-                  y + 25  // 25 Pixel unter dem Slider
-              );
-          };
-
-          // Zeichne beide Slider mit Prozentzahlen
-          drawSlider(musicSliderY, this.musicVolume, 'Music Volume');
-          drawSlider(soundSliderY, this.soundVolume, 'Sound Effects Volume');
-
-          // Speichere Slider-Positionen für Click-Detection
-          const knobSize = 15;
-          this.musicSlider = {
-              x: sliderX,
-              y: musicSliderY - knobSize/2,
-              width: sliderWidth,
-              height: knobSize
-          };
-          this.soundSlider = {
-              x: sliderX,
-              y: soundSliderY - knobSize/2,
-              width: sliderWidth,
-              height: knobSize
-          };
-
-          // Joystick Toggle Button
-          const buttonWidth = 150;
-          const buttonHeight = 40;
-          const buttonX = this.canvas.width/2 - buttonWidth/2;
-          const buttonY = menuY + 440;  // Position unter den Slidern
-
-          // Button Hintergrund
-          this.ctx.fillStyle = '#555';
-          this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
-
-          // Button Text
-          this.ctx.fillStyle = 'white';
-          this.ctx.font = '16px "Black Ops One"';
-          this.ctx.fillText(
-              this.showJoystick ? 'Joystick: ON' : 'Joystick: OFF',
-              this.canvas.width/2,
-              buttonY + 25
-          );
-
-          // Speichere Button-Position für Click-Detection
-          this.joystickButton = {
-              x: buttonX,
-              y: buttonY,
-              width: buttonWidth,
-              height: buttonHeight
-          };
-
-          this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
+          this.#renderMenu();
       }
 
       // Zeichne beide Joysticks
@@ -1043,6 +855,208 @@ class TankGame {
           this.ctx.textAlign = 'center';
           this.ctx.fillText('INVULNERABLE', this.canvas.width/2, 30);
       }
+  }
+
+  // Private method for rendering game over screen
+  #renderGameOver() {
+      this.ctx.drawImage(
+          this.gameOverImage,
+          0,
+          0,
+          this.canvas.width,
+          this.canvas.height
+      );
+
+      // Game Over Continue Button - nochmal 5 Pixel höher
+      const buttonWidth = 200;
+      const buttonHeight = 50;
+      const buttonX = this.canvas.width/2 - buttonWidth/2;
+      const buttonY = this.canvas.height - 55;  // Von -50 auf -55 geändert
+
+      // Button Hintergrund
+      this.ctx.fillStyle = '#ff0000';
+      this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+      // Button Text
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '20px "Black Ops One"';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('Play Again', this.canvas.width/2, buttonY + 32);
+
+      // Speichere Button-Position
+      this.continueButton = {
+          x: buttonX,
+          y: buttonY,
+          width: buttonWidth,
+          height: buttonHeight
+      };
+  }
+
+  #renderWinScreen() {
+      this.ctx.drawImage(
+          this.winImage,
+          0,
+          0,
+          this.canvas.width,
+          this.canvas.height
+      );
+      
+      // Win Screen Stats - Position ganz nach oben verschoben
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '32px "Black Ops One"';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(
+          `You reached Level ${this.gameLevel}`,
+          this.canvas.width/2,
+          100  // Feste Position nahe dem oberen Rand
+      );
+      this.ctx.fillText(
+          `(Wave ${this.level})!`,
+          this.canvas.width/2,
+          140  // 40 Pixel Abstand zum ersten Text
+      );
+
+      // Next Level Button - gleiche Farbe wie Play Again
+      const buttonWidth = 200;
+      const buttonHeight = 50;
+      const buttonX = this.canvas.width/2 - buttonWidth/2;
+      const buttonY = this.canvas.height - 100;
+
+      // Button Hintergrund - jetzt in Rot
+      this.ctx.fillStyle = '#ff0000';  // Rot statt #555
+      this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+      // Button Text
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '20px "Black Ops One"';
+      this.ctx.fillText('Next Level', this.canvas.width/2, buttonY + 32);
+
+      // Speichere Button-Position
+      this.nextLevelButton = {
+          x: buttonX,
+          y: buttonY,
+          width: buttonWidth,
+          height: buttonHeight
+      };
+  }
+
+  // Private method for rendering menu
+  #renderMenu() {
+      // Halbtransparenter schwarzer Hintergrund
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+      // Menü-Box mit größerer Höhe
+      const menuWidth = 300;
+      const menuHeight = 500;
+      const menuX = (this.canvas.width - menuWidth) / 2;
+      const menuY = (this.canvas.height - menuHeight) / 2;
+
+      // Menü-Hintergrund
+      this.ctx.fillStyle = '#333';
+      this.ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
+      
+      // Menü-Titel
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '24px "Black Ops One"';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('MENU', this.canvas.width/2, menuY + 50);
+
+      // Menü-Optionen
+      this.ctx.font = '16px "Black Ops One"';
+      this.ctx.fillText('Press ESC to close', this.canvas.width/2, menuY + 100);
+      this.ctx.fillText(`Level: ${this.gameLevel}`, this.canvas.width/2, menuY + 150);
+      this.ctx.fillText(`Wave: ${this.level}/${this.maxWavesPerLevel * this.gameLevel}`, this.canvas.width/2, menuY + 175);
+      this.ctx.fillText(`Points: ${this.points}`, this.canvas.width/2, menuY + 200);
+      this.ctx.fillText(`Health: ${Math.round(this.health)}%`, this.canvas.width/2, menuY + 250);
+
+      // Musik-Slider
+      const sliderWidth = 200;
+      const sliderHeight = 4;
+      const musicSliderY = menuY + 300;
+      const soundSliderY = menuY + 370;
+      const sliderX = this.canvas.width/2 - sliderWidth/2;
+      
+      // Funktion zum Zeichnen eines Sliders
+      const drawSlider = (y, value, label) => {
+          // Slider Hintergrund
+          this.ctx.fillStyle = '#555';
+          this.ctx.fillRect(sliderX, y, sliderWidth, sliderHeight);
+          
+          // Slider Fortschritt
+          this.ctx.fillStyle = '#fff';
+          this.ctx.fillRect(sliderX, y, sliderWidth * value, sliderHeight);
+          
+          // Slider Knopf
+          const knobSize = 15;
+          const knobX = sliderX + (sliderWidth * value) - (knobSize/2);
+          
+          this.ctx.beginPath();
+          this.ctx.arc(knobX + knobSize/2, y + sliderHeight/2, knobSize/2, 0, Math.PI * 2);
+          this.ctx.fillStyle = '#fff';
+          this.ctx.fill();
+          
+          // Label
+          this.ctx.fillStyle = 'white';
+          this.ctx.font = '16px "Black Ops One"';
+          this.ctx.textAlign = 'center';
+          this.ctx.fillText(label, this.canvas.width/2, y - 10);
+          
+          // Prozentzahl
+          this.ctx.fillText(
+              `${Math.round(value * 100)}%`,
+              this.canvas.width/2,
+              y + 25
+          );
+      };
+
+      // Zeichne beide Slider mit Prozentzahlen
+      drawSlider(musicSliderY, this.musicVolume, 'Music Volume');
+      drawSlider(soundSliderY, this.soundVolume, 'Sound Effects Volume');
+
+      // Speichere Slider-Positionen für Click-Detection
+      const knobSize = 15;
+      this.musicSlider = {
+          x: sliderX,
+          y: musicSliderY - knobSize/2,
+          width: sliderWidth,
+          height: knobSize
+      };
+      this.soundSlider = {
+          x: sliderX,
+          y: soundSliderY - knobSize/2,
+          width: sliderWidth,
+          height: knobSize
+      };
+
+      // Joystick Toggle Button
+      const buttonWidth = 150;
+      const buttonHeight = 40;
+      const buttonX = this.canvas.width/2 - buttonWidth/2;
+      const buttonY = menuY + 440;
+
+      // Button Hintergrund
+      this.ctx.fillStyle = '#555';
+      this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+      // Button Text
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '16px "Black Ops One"';
+      this.ctx.fillText(
+          this.showJoystick ? 'Joystick: ON' : 'Joystick: OFF',
+          this.canvas.width/2,
+          buttonY + 25
+      );
+
+      // Speichere Button-Position für Click-Detection
+      this.joystickButton = {
+          x: buttonX,
+          y: buttonY,
+          width: buttonWidth,
+          height: buttonHeight
+      };
+
+      this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
   }
 
   gameLoop() {

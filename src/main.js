@@ -121,7 +121,7 @@ class TankGame {
       this.isDraggingMusicSlider = false;
       this.isDraggingSoundSlider = false;
 
-      // Joystick Konfiguration
+      // Bewegungs-Joystick (bestehender)
       this.joystick = {
           x: 100,
           y: this.canvas.height - 100,
@@ -131,10 +131,23 @@ class TankGame {
           currentY: 0,
           isPressed: false
       };
-      
-      // Initialisiere Stick in der Mitte
+
+      // Neuer Schieß-Joystick
+      this.shootJoystick = {
+          x: this.canvas.width - 100,  // Rechte Seite
+          y: this.canvas.height - 100, // Unten
+          baseRadius: 70,
+          stickRadius: 30,
+          currentX: 0,
+          currentY: 0,
+          isPressed: false
+      };
+
+      // Initialisiere beide Sticks
       this.joystick.currentX = this.joystick.x;
       this.joystick.currentY = this.joystick.y;
+      this.shootJoystick.currentX = this.shootJoystick.x;
+      this.shootJoystick.currentY = this.shootJoystick.y;
 
       // Joystick Sichtbarkeits-Status - standardmäßig ausgeschaltet
       this.showJoystick = false;  // Von true auf false geändert
@@ -300,26 +313,36 @@ class TankGame {
 
       // Touch/Mouse Events für Joystick
       const handleStart = (e) => {
-          // Prüfe ob Joystick aktiviert ist
           if (!this.showJoystick) return;
           
           const pos = this.getInputPosition(e);
-          const dist = Math.sqrt(
+          
+          // Prüfe Bewegungs-Joystick
+          const distMove = Math.sqrt(
               Math.pow(pos.x - this.joystick.x, 2) + 
               Math.pow(pos.y - this.joystick.y, 2)
           );
           
-          if (dist < this.joystick.baseRadius) {
+          // Prüfe Schieß-Joystick
+          const distShoot = Math.sqrt(
+              Math.pow(pos.x - this.shootJoystick.x, 2) + 
+              Math.pow(pos.y - this.shootJoystick.y, 2)
+          );
+          
+          if (distMove < this.joystick.baseRadius) {
               this.joystick.isPressed = true;
+          } else if (distShoot < this.shootJoystick.baseRadius) {
+              this.shootJoystick.isPressed = true;
           }
       };
 
       const handleMove = (e) => {
-          // Prüfe ob Joystick aktiviert ist
           if (!this.showJoystick) return;
           
+          const pos = this.getInputPosition(e);
+          
+          // Bewegungs-Joystick Logik
           if (this.joystick.isPressed) {
-              const pos = this.getInputPosition(e);
               const dx = pos.x - this.joystick.x;
               const dy = pos.y - this.joystick.y;
               const distance = Math.sqrt(dx * dx + dy * dy);
@@ -344,15 +367,42 @@ class TankGame {
                   this.keys.w = false;
               }
           }
+          
+          // Schieß-Joystick Logik
+          if (this.shootJoystick.isPressed) {
+              const dx = pos.x - this.shootJoystick.x;
+              const dy = pos.y - this.shootJoystick.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              
+              if (distance < this.shootJoystick.baseRadius) {
+                  this.shootJoystick.currentX = pos.x;
+                  this.shootJoystick.currentY = pos.y;
+              } else {
+                  const angle = Math.atan2(dy, dx);
+                  this.shootJoystick.currentX = this.shootJoystick.x + Math.cos(angle) * this.shootJoystick.baseRadius;
+                  this.shootJoystick.currentY = this.shootJoystick.y + Math.sin(angle) * this.shootJoystick.baseRadius;
+              }
+              
+              // Aktualisiere Turm-Rotation und schieße
+              if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                  this.turretRotation = Math.atan2(dy, dx);
+                  if (!this.lastShootTime || performance.now() - this.lastShootTime > 250) {
+                      this.fireBulletFromJoystick();
+                      this.lastShootTime = performance.now();
+                  }
+              }
+          }
       };
 
       const handleEnd = () => {
-          // Prüfe ob Joystick aktiviert ist
           if (!this.showJoystick) return;
           
           this.joystick.isPressed = false;
+          this.shootJoystick.isPressed = false;
           this.joystick.currentX = this.joystick.x;
           this.joystick.currentY = this.joystick.y;
+          this.shootJoystick.currentX = this.shootJoystick.x;
+          this.shootJoystick.currentY = this.shootJoystick.y;
           this.keys.w = false;
       };
 
@@ -478,17 +528,26 @@ class TankGame {
       
       // Prüfe Klick im Joystick-Bereich
       if (this.showJoystick) {
+          // Prüfe Bewegungs-Joystick
           const distToJoystick = Math.sqrt(
               Math.pow(mouseX - this.joystick.x, 2) + 
               Math.pow(mouseY - this.joystick.y, 2)
           );
           
-          if (distToJoystick <= this.joystick.baseRadius) {
-              return; // Wenn im Joystick-Bereich geklickt wurde, nicht schießen
+          // Prüfe Schieß-Joystick
+          const distToShootJoystick = Math.sqrt(
+              Math.pow(mouseX - this.shootJoystick.x, 2) + 
+              Math.pow(mouseY - this.shootJoystick.y, 2)
+          );
+          
+          // Wenn Klick in einem der Joystick-Bereiche ist, nicht schießen
+          if (distToJoystick <= this.joystick.baseRadius || 
+              distToShootJoystick <= this.shootJoystick.baseRadius) {
+              return;
           }
       }
       
-      // Ansonsten normal weitermachen mit dem Schuss
+      // Nur schießen wenn nicht auf Joysticks geklickt wurde
       this.fireBullet(e);
   }
 
@@ -638,7 +697,7 @@ class TankGame {
       // Draw turret with separate rotation
       this.ctx.save();
       this.ctx.translate(this.playerX, this.playerY);
-      this.ctx.rotate(this.turretRotation);
+      this.ctx.rotate(this.turretRotation - this.playerRotation);
       this.ctx.drawImage(
           this.turretImage,
           -this.turretImage.width/2,
@@ -916,9 +975,9 @@ class TankGame {
           this.ctx.textAlign = 'left';  // Setze textAlign zurück auf 'left' nach dem Menü
       }
 
-      // Zeichne Joystick nur wenn er aktiviert ist
+      // Zeichne beide Joysticks
       if (!this.gameOver && !this.gameWon && !this.isMenuOpen && this.showJoystick) {
-          // Äußerer Kreis (Base)
+          // Bewegungs-Joystick
           this.ctx.beginPath();
           this.ctx.arc(this.joystick.x, this.joystick.y, this.joystick.baseRadius, 0, Math.PI * 2);
           this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
@@ -926,7 +985,6 @@ class TankGame {
           this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
           this.ctx.stroke();
 
-          // Innerer Kreis (Stick)
           this.ctx.beginPath();
           this.ctx.arc(
               this.joystick.currentX,
@@ -936,6 +994,25 @@ class TankGame {
               Math.PI * 2
           );
           this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          this.ctx.fill();
+
+          // Schieß-Joystick
+          this.ctx.beginPath();
+          this.ctx.arc(this.shootJoystick.x, this.shootJoystick.y, this.shootJoystick.baseRadius, 0, Math.PI * 2);
+          this.ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';  // Rötlich für den Schieß-Joystick
+          this.ctx.fill();
+          this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.4)';
+          this.ctx.stroke();
+
+          this.ctx.beginPath();
+          this.ctx.arc(
+              this.shootJoystick.currentX,
+              this.shootJoystick.currentY,
+              this.shootJoystick.stickRadius,
+              0,
+              Math.PI * 2
+          );
+          this.ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
           this.ctx.fill();
       }
   }
@@ -1073,6 +1150,22 @@ class TankGame {
           this.joystick.currentY = this.joystick.y;
           this.keys.w = false;
       }
+  }
+
+  // Neue Methode zum Schießen vom Joystick
+  fireBulletFromJoystick() {
+      if (this.gameOver || this.gameWon || this.isMenuOpen) return;
+      
+      const angle = this.turretRotation;  // Nutze die Turm-Rotation für die Schussrichtung
+      
+      const bulletSpeed = 10;
+      this.bullets.push({
+          x: this.playerX,
+          y: this.playerY,
+          dx: Math.cos(angle) * bulletSpeed,
+          dy: Math.sin(angle) * bulletSpeed
+      });
+      this.sounds.shoot.play();
   }
 }
 

@@ -710,14 +710,14 @@ class TankGame {
               this.canvas.height
           );
 
-          // Game Over Continue Button - noch tiefer gesetzt
+          // Game Over Continue Button - nochmal 5 Pixel höher
           const buttonWidth = 200;
           const buttonHeight = 50;
           const buttonX = this.canvas.width/2 - buttonWidth/2;
-          const buttonY = this.canvas.height - 40;  // Von -70 auf -40 geändert
+          const buttonY = this.canvas.height - 55;  // Von -50 auf -55 geändert
 
-          // Button Hintergrund - jetzt in Rot
-          this.ctx.fillStyle = '#ff0000';  // Rot statt #555
+          // Button Hintergrund
+          this.ctx.fillStyle = '#ff0000';
           this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
 
           // Button Text
@@ -744,19 +744,19 @@ class TankGame {
               this.canvas.height
           );
           
-          // Win Screen Stats
+          // Win Screen Stats - Position ganz nach oben verschoben
           this.ctx.fillStyle = 'white';
           this.ctx.font = '32px "Black Ops One"';
           this.ctx.textAlign = 'center';
           this.ctx.fillText(
               `You reached Level ${this.gameLevel}`,
               this.canvas.width/2,
-              this.canvas.height - 200
+              100  // Feste Position nahe dem oberen Rand
           );
           this.ctx.fillText(
               `(Wave ${this.level})!`,
               this.canvas.width/2,
-              this.canvas.height - 160
+              140  // 40 Pixel Abstand zum ersten Text
           );
 
           // Next Level Button - gleiche Farbe wie Play Again

@@ -1,5 +1,25 @@
 import { Howl } from 'howler';
 
+// Cursor-Funktionalität
+document.addEventListener('DOMContentLoaded', () => {
+  const cursor = document.getElementById('custom-cursor');
+  
+  document.addEventListener('mousemove', (e) => {
+    cursor.style.left = `${e.clientX}px`;
+    cursor.style.top = `${e.clientY}px`;
+  });
+  
+  // Cursor beim Verlassen des Fensters ausblenden
+  document.addEventListener('mouseout', () => {
+    cursor.style.display = 'none';
+  });
+  
+  // Cursor beim Betreten des Fensters einblenden
+  document.addEventListener('mouseover', () => {
+    cursor.style.display = 'block';
+  });
+});
+
 class TankGame {
   constructor() {
       this.canvas = document.getElementById('app');

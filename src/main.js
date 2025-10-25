@@ -723,6 +723,27 @@ class TankGame {
           this.canvas.height
       );
 
+      // Draw bullets first (behind everything else)
+      this.ctx.fillStyle = 'orange';
+      this.bullets.forEach(bullet => {
+          this.ctx.beginPath();
+          this.ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
+          this.ctx.fill();
+      });
+
+      // Draw enemies
+      this.enemies.forEach(enemy => {
+          this.ctx.save();
+          this.ctx.translate(enemy.x, enemy.y);
+          this.ctx.rotate(enemy.rotation);
+          this.ctx.drawImage(
+              this.enemyImage,
+              -this.enemyImage.width/2,
+              -this.enemyImage.height/2
+          );
+          this.ctx.restore();
+      });
+
       // Draw player base
       this.ctx.save();
       this.ctx.translate(this.playerX, this.playerY);
@@ -744,27 +765,6 @@ class TankGame {
           -this.turretImage.height/2
       );
       this.ctx.restore();
-
-      // Draw enemies
-      this.enemies.forEach(enemy => {
-          this.ctx.save();
-          this.ctx.translate(enemy.x, enemy.y);
-          this.ctx.rotate(enemy.rotation);
-          this.ctx.drawImage(
-              this.enemyImage,
-              -this.enemyImage.width/2,
-              -this.enemyImage.height/2
-          );
-          this.ctx.restore();
-      });
-
-      // Draw bullets
-      this.ctx.fillStyle = 'orange';
-      this.bullets.forEach(bullet => {
-          this.ctx.beginPath();
-          this.ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
-          this.ctx.fill();
-      });
 
       // Draw UI - Größere Schrift und mehr Abstand
       this.ctx.fillStyle = 'white';
